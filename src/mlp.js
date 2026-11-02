@@ -1,3 +1,12 @@
+// tanh as a Padé approximant (within 1e-4 of Math.tanh), from my neat-from-scratch repo: plain arithmetic,
+// so a trained brain gives the same bits in every JS engine (Math.tanh is left to each engine), and it's faster.
+export const tanh = (x) => {
+  if (x > 4.97) return 1;
+  if (x < -4.97) return -1;
+  const x2 = x * x;
+  return (x * (135135 + x2 * (17325 + x2 * (378 + x2)))) / (135135 + x2 * (62370 + x2 * (3150 + x2 * 28)));
+};
+
 // Plain MLP, tanh everywhere, all parameters in one Float32Array so ES can perturb it as a flat vector.
 
 export function mulberry32(seed) {
@@ -47,7 +56,7 @@ export function forward(mlp, input) {
       let s = params[bias + o];
       const row = k + o * nIn;
       for (let j = 0; j < nIn; j++) s += params[row + j] * x[j];
-      y[o] = Math.tanh(s);
+      y[o] = tanh(s);
     }
     k = bias + nOut;
     x = y;
