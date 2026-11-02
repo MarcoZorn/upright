@@ -4,3 +4,5 @@ runs/*/state.json
 runs/*/state.json.tmp
 runs/*/gens/
 runs/*/latest.json
+runs/*/stdout*.txt
+runs/*/state.json.tmp
