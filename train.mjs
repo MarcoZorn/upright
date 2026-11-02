@@ -5,8 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 try { os.setPriority(19); } catch { /* lowest priority: never get in the way of interactive work */ }
-import { LAYERS } from './src/sim.js';
-import { OBS_SIZE } from './src/body.js';
+import { DOFS, OBS_SIZE } from './src/body.js';
 import { createMLP, mulberry32, serialize, toB64, fromB64 } from './src/mlp.js';
 import { makeNoise, esGradient, adamStep, newStats, mergeStats, statsToNorm } from './src/es.js';
 import { STAGES, sampleTarget } from './src/task.js';
@@ -19,19 +18,22 @@ const cfg = {
   gens: +(args.gens ?? Infinity), noise: +(args.noise ?? 32_000_000), evalSeeds: +(args.evalSeeds ?? 8),
   saveEvery: +(args.saveEvery ?? 10), publishEvery: +(args.publishEvery ?? 50), quiet: !!args.quiet,
   stage: args.stage !== undefined ? +args.stage : undefined,
-  alive: +(args.alive ?? 1), pushScale: +(args.pushScale ?? 1),
+  alive: +(args.alive ?? 1), pushScale: +(args.pushScale ?? 1), hidden: +(args.hidden ?? 512),
 };
 const dir = cfg.run, stateFile = path.join(dir, 'state.json'), logFile = path.join(dir, 'log.jsonl');
 fs.mkdirSync(path.join(dir, 'gens'), { recursive: true });
 if (args.fresh) for (const f of [stateFile, logFile]) fs.rmSync(f, { force: true });
 
 // ---------- state ----------
+const saved = fs.existsSync(stateFile) ? JSON.parse(fs.readFileSync(stateFile, 'utf8')) : null;
+if (saved && args.hidden === undefined) cfg.hidden = saved.cfg.hidden ?? 512; // older runs had no flag: 512
+const LAYERS = [OBS_SIZE, cfg.hidden, cfg.hidden, DOFS.length];
 const dim = createMLP(LAYERS).params.length;
 const thetaBuf = new SharedArrayBuffer(dim * 4), normBuf = new SharedArrayBuffer(OBS_SIZE * 8);
 const theta = new Float32Array(thetaBuf), norm = new Float32Array(normBuf);
 let st;
-if (fs.existsSync(stateFile)) {
-  const s = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
+if (saved) {
+  const s = saved;
   theta.set(fromB64(s.theta));
   st = { gen: s.gen, stage: s.stage, adam: { t: s.adam.t, m: fromB64(s.adam.m), v: fromB64(s.adam.v) },
     stats: { count: s.stats.count, sum: Float64Array.from(s.stats.sum), sumsq: Float64Array.from(s.stats.sumsq) } };
@@ -137,11 +139,12 @@ while (!stopping && st.gen < endGen) {
     fitness: mean(evals.map((e) => e.fitness)),
     popFitness: mean(pairs.flatMap((p) => [p.plus.fitness, p.minus.fitness])),
     upFrac: mean(evals.map((e) => e.upFrac)),
+    popUp: mean(pairs.flatMap((p) => [p.plus.upFrac, p.minus.upFrac])), // do the perturbed siblings survive too?
     speed: Object.fromEntries(targets.map((t) => [t, mean(evals.filter((e) => e.target === t).map((e) => e.speed))])),
     step: stepNorm, secs: (performance.now() - g0) / 1000,
   };
   fs.appendFileSync(logFile, JSON.stringify(m) + '\n');
-  log(`gen ${String(st.gen).padStart(5)} ${stage.name.padEnd(5)} fit ${m.fitness.toFixed(1).padStart(7)} pop ${m.popFitness.toFixed(1).padStart(7)} up ${(m.upFrac * 100).toFixed(0).padStart(3)}% speed ${targets.map((t) => `${t}:${m.speed[t].toFixed(2)}`).join(' ')} |Δ| ${stepNorm.toFixed(3)} ${m.secs.toFixed(1)}s`);
+  log(`gen ${String(st.gen).padStart(5)} ${stage.name.padEnd(5)} fit ${m.fitness.toFixed(1).padStart(7)} pop ${m.popFitness.toFixed(1).padStart(7)} up ${(m.upFrac * 100).toFixed(0).padStart(3)}%/${(m.popUp * 100).toFixed(0).padStart(3)}% speed ${targets.map((t) => `${t}:${m.speed[t].toFixed(2)}`).join(' ')} |Δ| ${stepNorm.toFixed(3)} ${m.secs.toFixed(1)}s`);
 
   const meta = { gen: st.gen, stage: stage.name, fitness: +m.fitness.toFixed(1), upFrac: +m.upFrac.toFixed(3), speed: m.speed };
   const graduated = stage.graduate(m) && st.stage < STAGES.length - 1;
