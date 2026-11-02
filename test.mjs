@@ -110,5 +110,16 @@ if (!isMainThread) {
     assert.equal(a.adam.m, b.adam.m);
   });
 
+  await check('a second JS engine (Bun / JavaScriptCore) reproduces the same trajectory and fitness', () => {
+    let bun;
+    try { bun = execFileSync('which', ['bun']).toString().trim(); } catch { console.log('    (bun not installed, skipped)'); return; }
+    const code = `const {default:R}=await import('@dimforge/rapier3d-compat');await R.init();
+      const s=await import('./src/sim.js');const t=await import('./src/task.js');const b=s.randomBrain(3);
+      console.log(s.rollout(R,b,{seconds:5,stopOnFall:false}).hash, t.episode(R,b,{stage:2,seed:9}).fitness)`;
+    const other = execFileSync(bun, ['-e', code]).toString().trim();
+    const b = randomBrain(3);
+    assert.equal(other, `${rollout(R, b, { seconds: 5, stopOnFall: false }).hash} ${episode(R, b, { stage: 2, seed: 9 }).fitness}`);
+  });
+
   console.log(`zero-brain 10 s trajectory hash ${rollout(R, zeroBrain(), { seconds: 10, stopOnFall: false }).hash.toString(16)} (the viewer shows the same number)`);
 }
