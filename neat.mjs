@@ -54,7 +54,7 @@ while (!stopping && pop.generation < end) {
   const bestI = res.reduce((b, r, i) => (mean(r.map((e) => e.fitness)) > mean(res[b].map((e) => e.fitness)) ? i : b), 0);
   const best = res[bestI], cx = pop.genomes[bestI].complexity();
   const m = { gen: pop.generation, episodes, best: mean(best.map((e) => e.fitness)), mean: mean(res.flat().map((e) => e.fitness)),
-    upFrac: mean(best.map((e) => e.upFrac)), nodes: cx.nodes, conns: cx.conns, secs: (performance.now() - t0) / 1000 };
+    upFrac: mean(best.map((e) => e.upFrac)), speed: mean(best.map((e) => e.speed)), nodes: cx.nodes, conns: cx.conns, secs: (performance.now() - t0) / 1000 };
   fs.appendFileSync(logFile, JSON.stringify(m) + '\n');
   console.log(`neat gen ${String(m.gen).padStart(4)} best ${m.best.toFixed(1).padStart(7)} mean ${m.mean.toFixed(1).padStart(7)} up ${(m.upFrac * 100).toFixed(0)}% nodes ${cx.nodes} conns ${cx.conns} ${m.secs.toFixed(1)}s`);
   pop.evolve();
