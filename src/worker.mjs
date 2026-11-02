@@ -7,18 +7,20 @@ import { OBS_SIZE } from './body.js';
 import { Genome } from '../vendor/neat/genome.js';
 
 await R.init();
-const { noiseBuf, thetaBuf, normBuf, layers } = workerData;
+const { noiseBuf, thetaBuf, normBuf, scaleBuf, layers, cpgDim = 0 } = workerData;
 const noise = new Float32Array(noiseBuf), theta = new Float32Array(thetaBuf), norm = new Float32Array(normBuf);
+const scale = scaleBuf ? new Float32Array(scaleBuf) : null;
+const full = new Float32Array(theta.length);
 const brain = {
-  layers, params: new Float32Array(theta.length),
+  layers, full, params: full.subarray(cpgDim), cpg: cpgDim ? full.subarray(0, cpgDim) : undefined,
   norm: { mean: new Float32Array(OBS_SIZE), std: new Float32Array(OBS_SIZE) },
 };
 
 function run(job, sign, stats) {
-  const p = brain.params;
-  if (sign === 0) p.set(theta);
-  else for (let i = 0; i < p.length; i++) p[i] = theta[i] + sign * job.sigma * noise[job.off + i];
-  return episode(R, brain, { stage: job.stage, seed: job.seed, target: job.target, stats, alive: job.alive, pushScale: job.pushScale });
+  if (sign === 0) full.set(theta);
+  else for (let i = 0; i < full.length; i++) full[i] = theta[i] + sign * job.sigma * scale[i] * noise[job.off + i];
+  return episode(R, brain, { stage: job.stage, seed: job.seed, target: job.target, stats, alive: job.alive,
+    pushScale: job.pushScale, gravity: job.gravity, gait: job.gait });
 }
 
 parentPort.on('message', (job) => {

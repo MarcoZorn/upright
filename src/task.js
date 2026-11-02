@@ -1,6 +1,7 @@
 // Reward + curriculum. One episode = one brain, one target speed, one seeded set of pushes.
 import { fallen, DOFS, OBS_SIZE } from './body.js';
-import { makeEnv, observe, stepEnv, think, DT, ACT_EVERY } from './sim.js';
+import { makeEnv, observe, stepEnv, think, brainFreq, DT, ACT_EVERY } from './sim.js';
+import { analyzeGait } from './gait.js';
 import { mulberry32 } from './mlp.js';
 
 // targets: [speed m/s, probability]. Later stages keep sampling earlier targets so nothing is forgotten.
@@ -8,8 +9,8 @@ import { mulberry32 } from './mlp.js';
 // just balances makes every sibling fall, and then ES ranks fallers and learns to dive.
 export const STAGES = [
   { name: 'stand', targets: [[0, 1]], push: 20, graduate: (m) => m.upFrac >= 0.95 && m.popUp >= 0.8 },
-  { name: 'shuffle', targets: [[0.4, 0.8], [0, 0.2]], push: 10, graduate: (m) => m.upFrac >= 0.9 && m.popUp >= 0.7 && m.speed[0.4] > 0.3 },
-  { name: 'walk', targets: [[1, 0.6], [0.4, 0.2], [0, 0.2]], push: 10, graduate: (m) => m.upFrac >= 0.9 && m.popUp >= 0.7 && m.speed[1] > 0.8 },
+  { name: 'shuffle', targets: [[0.4, 0.8], [0, 0.2]], push: 0, graduate: (m) => m.upFrac >= 0.9 && m.popUp >= 0.7 && m.speed[0.4] > 0.3 },
+  { name: 'walk', targets: [[1, 0.6], [0.4, 0.2], [0, 0.2]], push: 0, graduate: (m) => m.upFrac >= 0.9 && m.popUp >= 0.7 && m.speed[1] > 0.8 },
   { name: 'jog', targets: [[2, 0.6], [1, 0.2], [0, 0.2]], push: 8, graduate: (m) => m.upFrac >= 0.9 && m.popUp >= 0.7 && m.speed[2] > 1.6 },
   { name: 'run', targets: [[3, 0.6], [2, 0.1], [1, 0.1], [0, 0.2]], push: 8, graduate: () => false },
 ];
@@ -28,8 +29,10 @@ export function sampleTarget(stage, seed) {
 
 // Per brain step: alive bonus + uprightness + speed tracking - energy. Falling ends the episode with a penalty.
 // alive / pushScale: reward and difficulty knobs, set from train.mjs flags for sweeps.
-export function episode(R, brain, { stage = 0, seed = 1, target = sampleTarget(stage, seed), seconds = SECONDS, stats, alive = 1, pushScale = 1 } = {}) {
-  const env = makeEnv(R, { targetSpeed: target });
+export function episode(R, brain, { stage = 0, seed = 1, target = sampleTarget(stage, seed), seconds = SECONDS, stats, alive = 1, pushScale = 1, gravity = 9.81, gait = false } = {}) {
+  const env = makeEnv(R, { targetSpeed: target, gravity });
+  env.freq = brainFreq(brain);
+  const contacts = gait ? [[], []] : null;
   const rng = mulberry32(seed);
   const pushMax = STAGES[stage].push * pushScale;
   const torso = env.rd.bodies.torso, pelvis = env.rd.bodies.pelvis;
@@ -50,7 +53,8 @@ export function episode(R, brain, { stage = 0, seed = 1, target = sampleTarget(s
     const obs = observe(env);
     if (stats) for (let i = 0; i < OBS_SIZE; i++) { stats.sum[i] += obs[i]; stats.sumsq[i] += obs[i] * obs[i]; }
     if (stats) stats.count++;
-    const out = think(brain, obs);
+    const out = think(brain, obs, env.step);
+    if (contacts) { contacts[0].push(obs[OBS_SIZE - 3]); contacts[1].push(obs[OBS_SIZE - 2]); }
     // mechanical power estimate from the PD law the motors run: |tau * omega|
     let power = 0;
     for (let i = 0; i < DOFS.length; i++) {
@@ -82,5 +86,9 @@ export function episode(R, brain, { stage = 0, seed = 1, target = sampleTarget(s
   const dist = !done ? pelvis.translation().z : lastUp >= REWIND ? zHist[(lastUp - REWIND + 1) % REWIND] : 0;
   const creditTime = done ? Math.max(0, upTime - REWIND * CTRL_DT) : upTime;
   env.world.free();
-  return { fitness, upTime, upFrac: upTime / seconds, dist, speed: creditTime > 0 ? dist / creditTime : 0, energy, target };
+  const speed = creditTime > 0 ? dist / creditTime : 0;
+  const res = { fitness, upTime, upFrac: upTime / seconds, dist, speed, energy, target };
+  // gait over the upright part only, skipping the first second (getting going)
+  if (contacts) res.gait = analyzeGait(contacts[0].slice(30, lastUp + 1), contacts[1].slice(30, lastUp + 1), CTRL_DT, speed, gravity);
+  return res;
 }
