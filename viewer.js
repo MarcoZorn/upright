@@ -94,7 +94,7 @@ let targetSpeed = 0;
 
 function reset() {
   env?.world.free();
-  env = makeEnv(R, { targetSpeed });
+  env = makeEnv(R, { targetSpeed, gravity: +$('grav').value });
   env.freq = brainFreq(brain);
   hash = 0x811c9dc5; upTime = 0; wasDown = false; contacts = [0, 0]; acc = 0; tampered = false;
   for (const m of prints.splice(0)) scene.remove(m);
@@ -175,6 +175,7 @@ $('speed').oninput = () => { $('speedLabel').textContent = speed().toFixed(2) + 
 select.onchange = pickBrain;
 gen.oninput = pickBrain;
 $('reset').onclick = reset;
+$('grav').onchange = reset;
 $('pause').onclick = () => { paused = !paused; $('pause').textContent = paused ? 'play' : 'pause'; };
 $('follow').onclick = () => { follow = !follow; $('follow').textContent = `follow: ${follow ? 'on' : 'off'}`; };
 $('push').onclick = () => {
@@ -208,7 +209,7 @@ resize();
 function proofStatus() {
   const p = brain?.meta?.proof;
   if (!p) return '—';
-  if (tampered || targetSpeed !== p.target) return 'n/a (pushed or speed changed)';
+  if (tampered || targetSpeed !== p.target || +$('grav').value !== (p.gravity ?? 9.81)) return 'n/a (pushed, or speed/gravity changed)';
   if (!env.hash10) return 'checking…';
   return env.hash10 === p.hash10 ? '✓ matches training' : '✗ differs from training';
 }
