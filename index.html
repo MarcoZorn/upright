@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>upright</title>
+<meta name="description" content="A 3D ragdoll learning to stand, walk and run by neuroevolution. Rapier physics, live in the browser.">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.187.0/examples/jsm/",
+    "@dimforge/rapier3d-compat": "https://cdn.jsdelivr.net/npm/@dimforge/rapier3d-compat@0.21.0/dist/rapier.mjs"
+  }
+}
+</script>
+<style>
+  :root { --ink: #e9e4da; --dim: #8d877c; --line: #ffffff1a; --accent: #f2a65a; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #14130f; color: var(--ink);
+    font: 13px/1.4 ui-monospace, "JetBrains Mono", Menlo, monospace; overflow: hidden; }
+  canvas { display: block; }
+  #panel { position: fixed; top: 16px; left: 16px; width: 280px; padding: 14px 16px;
+    background: #14130fcc; border: 1px solid var(--line); border-radius: 10px; backdrop-filter: blur(8px); }
+  h1 { margin: 0 0 2px; font-size: 18px; letter-spacing: 0.02em; }
+  h1 + p { margin: 0 0 12px; color: var(--dim); }
+  label { display: block; margin: 10px 0 4px; color: var(--dim); }
+  select, input[type=range], button { width: 100%; font: inherit; color: var(--ink); }
+  select, button { background: #ffffff0d; border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; }
+  button { cursor: pointer; }
+  button:hover, select:hover { border-color: #ffffff40; }
+  input[type=range] { accent-color: var(--accent); }
+  .row { display: flex; gap: 6px; margin-top: 10px; }
+  .row button { flex: 1; }
+  #stats { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line);
+    display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; }
+  #stats span:nth-child(odd) { color: var(--dim); }
+  #stats span:nth-child(even) { text-align: right; font-variant-numeric: tabular-nums; }
+  #hint { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); color: var(--dim); }
+  #fall { position: fixed; top: 22px; left: 50%; transform: translateX(-50%); color: var(--accent);
+    font-size: 15px; opacity: 0; transition: opacity .3s; }
+  a { color: var(--accent); }
+  kbd { border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; }
+</style>
+</head>
+<body>
+<div id="panel">
+  <h1>upright</h1>
+  <p>a ragdoll learning to stand</p>
+
+  <label for="brain">brain</label>
+  <select id="brain"></select>
+
+  <label for="gen">generation <span id="genLabel"></span></label>
+  <input id="gen" type="range" min="0" max="0" value="0" disabled>
+
+  <label for="speed">speed <span id="speedLabel">1.00×</span></label>
+  <input id="speed" type="range" min="-3" max="1" step="0.05" value="0">
+
+  <div class="row">
+    <button id="pause" title="space">pause</button>
+    <button id="reset" title="r">reset</button>
+    <button id="push" title="p">push</button>
+  </div>
+  <div class="row">
+    <button id="follow">follow: on</button>
+    <button id="load">load .json</button>
+  </div>
+  <input id="file" type="file" accept=".json" hidden>
+
+  <div id="stats"></div>
+</div>
+<div id="fall">fell</div>
+<div id="hint">drag to orbit · scroll to zoom · <kbd>space</kbd> pause · <kbd>r</kbd> reset · <kbd>p</kbd> push</div>
+<script type="module" src="viewer.js"></script>
+</body>
+</html>
