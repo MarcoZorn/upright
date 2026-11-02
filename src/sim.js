@@ -43,6 +43,7 @@ export const randomBrain = (seed = 1) => createMLP(LAYERS, seed);
 // Inputs are normalised with running stats gathered during training (stored in the brain file), clipped to ±5.
 export function think(brain, obs) {
   if (brain.zero) return new Float32Array(DOFS.length);
+  if (brain.activate) return brain.activate(obs, (brain._out ??= new Float32Array(DOFS.length))); // NEAT genome
   if (!brain.norm) return forward(brain, obs);
   const x = (brain._x ??= new Float32Array(obs.length)), { mean, std } = brain.norm;
   for (let i = 0; i < obs.length; i++) x[i] = Math.max(-5, Math.min(5, (obs[i] - mean[i]) / std[i]));

@@ -4,6 +4,7 @@ import R from '@dimforge/rapier3d-compat';
 import { episode } from './task.js';
 import { newStats } from './es.js';
 import { OBS_SIZE } from './body.js';
+import { Genome } from '../vendor/neat/genome.js';
 
 await R.init();
 const { noiseBuf, thetaBuf, normBuf, layers } = workerData;
@@ -23,6 +24,12 @@ function run(job, sign, stats) {
 parentPort.on('message', (job) => {
   brain.norm.mean.set(norm.subarray(0, OBS_SIZE));
   brain.norm.std.set(norm.subarray(OBS_SIZE));
+  if (job.genome) { // NEAT baseline: score one genome on the given seeds
+    const g = Genome.fromJSON(job.genome);
+    const res = job.seeds.map((seed) => episode(R, g, { stage: job.stage, seed, target: job.target }));
+    parentPort.postMessage({ id: job.id, res });
+    return;
+  }
   if (job.eval) {
     parentPort.postMessage({ id: job.id, res: run(job, 0) });
     return;
