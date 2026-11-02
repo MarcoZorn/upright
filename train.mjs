@@ -20,7 +20,7 @@ const cfg = {
   saveEvery: +(args.saveEvery ?? 10), publishEvery: +(args.publishEvery ?? 50), quiet: !!args.quiet,
   stage: args.stage !== undefined ? +args.stage : undefined,
   alive: +(args.alive ?? 1), pushScale: +(args.pushScale ?? 1), hidden: +(args.hidden ?? 512),
-  cpg: !!args.cpg, cpgSigma: +(args.cpgSigma ?? 0.1), freezeMlp: !!args.freezeMlp, gravity: +(args.gravity ?? 9.81),
+  cpg: !!args.cpg, cpgSigma: +(args.cpgSigma ?? 0.1), freezeMlp: !!args.freezeMlp, gravity: +(args.gravity ?? 9.81), rewind: +(args.rewind ?? 1), fallPenalty: +(args.fallPenalty ?? 10),
   adaptSigma: args.adaptSigma === undefined ? true : args.adaptSigma !== 'false',
 };
 const dir = cfg.run, stateFile = path.join(dir, 'state.json'), logFile = path.join(dir, 'log.jsonl');
@@ -131,11 +131,11 @@ while (!stopping && st.gen < endGen) {
   const jobs = [];
   for (let k = 0; k < cfg.pairs; k++) {
     const seed = hash(cfg.seed, st.gen, k);
-    jobs.push({ off: Math.floor(rng() * (cfg.noise - dim)), seed, stage: st.stage, target: sampleTarget(st.stage, seed), sigma: cfg.sigma, alive: cfg.alive, pushScale: cfg.pushScale, gravity: cfg.gravity });
+    jobs.push({ off: Math.floor(rng() * (cfg.noise - dim)), seed, stage: st.stage, target: sampleTarget(st.stage, seed), sigma: cfg.sigma, alive: cfg.alive, pushScale: cfg.pushScale, gravity: cfg.gravity, rewind: cfg.rewind, fallPenalty: cfg.fallPenalty });
   }
   const targets = [...new Set(stage.targets.map(([v]) => v))];
   for (const target of targets) for (let e = 0; e < cfg.evalSeeds; e++)
-    jobs.push({ eval: true, seed: hash(cfg.seed, st.gen, 1e6 + e), stage: st.stage, target, alive: cfg.alive, pushScale: cfg.pushScale, gravity: cfg.gravity, gait: true });
+    jobs.push({ eval: true, seed: hash(cfg.seed, st.gen, 1e6 + e), stage: st.stage, target, alive: cfg.alive, pushScale: cfg.pushScale, gravity: cfg.gravity, gait: true, rewind: cfg.rewind, fallPenalty: cfg.fallPenalty });
 
   const res = await runJobs(jobs);
   const pairs = res.filter((r) => r.plus);

@@ -16,7 +16,6 @@ export const STAGES = [
 ];
 export const SECONDS = 10;
 const CTRL_DT = DT * ACT_EVERY;
-const REWIND = 30; // brain steps = 1 s
 const VEL = DOFS.length; // obs offset of joint velocities (scaled 0.1)
 const UP_Y = DOFS.length * 2 + 1; // world-up seen from the torso, y component = uprightness
 
@@ -29,7 +28,8 @@ export function sampleTarget(stage, seed) {
 
 // Per brain step: alive bonus + uprightness + speed tracking - energy. Falling ends the episode with a penalty.
 // alive / pushScale: reward and difficulty knobs, set from train.mjs flags for sweeps.
-export function episode(R, brain, { stage = 0, seed = 1, target = sampleTarget(stage, seed), seconds = SECONDS, stats, alive = 1, pushScale = 1, gravity = 9.81, gait = false } = {}) {
+export function episode(R, brain, { stage = 0, seed = 1, target = sampleTarget(stage, seed), seconds = SECONDS, stats, alive = 1, pushScale = 1, gravity = 9.81, gait = false, rewind = 1, fallPenalty = 10 } = {}) {
+  const REWIND = Math.max(1, Math.round(rewind / CTRL_DT));
   const env = makeEnv(R, { targetSpeed: target, gravity });
   env.freq = brainFreq(brain);
   const contacts = gait ? [[], []] : null;
@@ -46,8 +46,8 @@ export function episode(R, brain, { stage = 0, seed = 1, target = sampleTarget(s
   let nextPush = 2 + 2 * rng();
   let fitness = 0, upTime = 0, energy = 0, done = false;
   const steps = Math.round(seconds / CTRL_DT);
-  // Ring buffers of the last REWIND steps: on a fall, the forward-speed credit and distance of the final
-  // second are taken back, so diving forward pays nothing; only progress that was survived counts.
+  // Ring buffers of the last `rewind` seconds: on a fall, the forward-speed credit and distance of that
+  // window are taken back, so diving forward pays nothing; only progress that was survived counts.
   const trackHist = new Float64Array(REWIND), zHist = new Float64Array(REWIND);
   for (let s = 0; s < steps && !done; s++) {
     const obs = observe(env);
@@ -67,7 +67,7 @@ export function episode(R, brain, { stage = 0, seed = 1, target = sampleTarget(s
     if (env.t >= nextPush) { kick(pushMax); nextPush += 2 + 2 * rng(); }
     if (fallen(env.rd)) {
       for (const t of trackHist) if (t > 0) fitness -= t;
-      fitness -= 10;
+      fitness -= fallPenalty;
       done = true;
       break;
     }
