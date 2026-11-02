@@ -21,13 +21,15 @@ export function paramCount(layers) {
   return n;
 }
 
-export function createMLP(layers, seed = 1) {
+// zeroLast: output layer starts at 0, so a fresh brain outputs the rest pose (it stands) instead of flailing.
+export function createMLP(layers, seed = 1, { zeroLast = false } = {}) {
   const params = new Float32Array(paramCount(layers));
   const rng = mulberry32(seed);
   let k = 0;
   for (let i = 1; i < layers.length; i++) {
     const std = 1 / Math.sqrt(layers[i - 1]);
-    for (let j = 0; j < layers[i - 1] * layers[i]; j++) params[k++] = gaussian(rng) * std;
+    const last = zeroLast && i === layers.length - 1;
+    for (let j = 0; j < layers[i - 1] * layers[i]; j++) params[k++] = last ? 0 : gaussian(rng) * std;
     k += layers[i]; // biases start at 0
   }
   return { layers, params };
@@ -53,18 +55,27 @@ export function forward(mlp, input) {
   return x;
 }
 
-// Brain file: JSON with the layer sizes, metadata and the parameters as base64 float32 (little-endian).
-export function serialize(mlp, meta = {}) {
-  const bytes = new Uint8Array(mlp.params.buffer, mlp.params.byteOffset, mlp.params.byteLength);
+export function toB64(f32) {
+  const bytes = new Uint8Array(f32.buffer, f32.byteOffset, f32.byteLength);
   let bin = '';
   for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
-  return JSON.stringify({ layers: mlp.layers, meta, params: btoa(bin) });
+  return btoa(bin);
+}
+
+export function fromB64(b64) {
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new Float32Array(bytes.buffer);
+}
+
+// Brain file: JSON with layer sizes, metadata, optional input normalisation, parameters as base64 float32.
+export function serialize(mlp, meta = {}) {
+  const norm = mlp.norm && { mean: toB64(mlp.norm.mean), std: toB64(mlp.norm.std) };
+  return JSON.stringify({ layers: mlp.layers, meta, norm, params: toB64(mlp.params) });
 }
 
 export function deserialize(text) {
-  const { layers, meta, params } = JSON.parse(text);
-  const bin = atob(params);
-  const bytes = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-  return { layers, meta, params: new Float32Array(bytes.buffer) };
+  const { layers, meta, norm, params } = JSON.parse(text);
+  return { layers, meta, params: fromB64(params), norm: norm && { mean: fromB64(norm.mean), std: fromB64(norm.std) } };
 }

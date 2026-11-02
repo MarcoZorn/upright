@@ -40,7 +40,14 @@ export function stateHash(env, h = 0x811c9dc5) {
 
 export const zeroBrain = () => ({ layers: LAYERS, zero: true });
 export const randomBrain = (seed = 1) => createMLP(LAYERS, seed);
-export const think = (brain, obs) => (brain.zero ? new Float32Array(DOFS.length) : forward(brain, obs));
+// Inputs are normalised with running stats gathered during training (stored in the brain file), clipped to ±5.
+export function think(brain, obs) {
+  if (brain.zero) return new Float32Array(DOFS.length);
+  if (!brain.norm) return forward(brain, obs);
+  const x = (brain._x ??= new Float32Array(obs.length)), { mean, std } = brain.norm;
+  for (let i = 0; i < obs.length; i++) x[i] = Math.max(-5, Math.min(5, (obs[i] - mean[i]) / std[i]));
+  return forward(brain, x);
+}
 
 // Runs one episode headless. Returns how long it stayed up and a hash of the whole trajectory.
 export function rollout(R, brain, { seconds = 10, targetSpeed = 0, stopOnFall = true } = {}) {
