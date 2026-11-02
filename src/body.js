@@ -113,11 +113,12 @@ function invRotate(q, v) {
   return { x: v.x + w * tx + y * tz - z * ty, y: v.y + w * ty + z * tx - x * tz, z: v.z + w * tz + x * ty - y * tx };
 }
 
-export const OBS_SIZE = DOFS.length * 2 + 6 + 3 + 3 + 1 + 2 + 1;
+export const OBS_SIZE = DOFS.length * 2 + 6 + 3 + 3 + 2 + 1 + 2 + 1;
+export const CLOCK_PERIOD = 1.0; // s; a gait clock lets a memoryless MLP step rhythmically
 
 // Senses: joint angles + velocities, torso orientation (world up and forward seen from the torso),
-// torso angular and linear velocity (torso frame, i.e. vestibular), pelvis height, foot contacts, target speed. No global position.
-export function sense(rd, world, ground, targetSpeed, obs = new Float32Array(OBS_SIZE)) {
+// torso angular and linear velocity (torso frame, i.e. vestibular), a gait clock, pelvis height, foot contacts, target speed. No global position.
+export function sense(rd, world, ground, targetSpeed, t, obs = new Float32Array(OBS_SIZE)) {
   let k = 0;
   for (const d of rd.dofs) {
     const q = relQuat(d.j.parent.rotation(), d.j.child.rotation());
@@ -138,6 +139,7 @@ export function sense(rd, world, ground, targetSpeed, obs = new Float32Array(OBS
   obs[k++] = 0.1 * w.x; obs[k++] = 0.1 * w.y; obs[k++] = 0.1 * w.z;
   const v = invRotate(tq, rd.bodies.torso.linvel());
   obs[k++] = v.x; obs[k++] = v.y; obs[k++] = v.z;
+  obs[k++] = Math.sin(2 * Math.PI * t / CLOCK_PERIOD); obs[k++] = Math.cos(2 * Math.PI * t / CLOCK_PERIOD);
   obs[k++] = rd.bodies.pelvis.translation().y;
   obs[k++] = footContact(rd.bodies.lfoot, world, ground);
   obs[k++] = footContact(rd.bodies.rfoot, world, ground);

@@ -18,7 +18,7 @@ export function makeEnv(R, { targetSpeed = 0 } = {}) {
 }
 
 export function observe(env) {
-  return sense(env.rd, env.world, env.ground, env.targetSpeed, env.obs);
+  return sense(env.rd, env.world, env.ground, env.targetSpeed, env.t, env.obs);
 }
 
 export function stepEnv(env, out) {
