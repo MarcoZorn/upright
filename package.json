@@ -1,0 +1,13 @@
+{
+  "name": "upright",
+  "version": "0.1.0",
+  "description": "A 3D ragdoll learning to stand, walk and run by neuroevolution, in Rapier, viewable in the browser.",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "test": "node test.mjs"
+  },
+  "dependencies": {
+    "@dimforge/rapier3d-compat": "0.21.0"
+  }
+}
