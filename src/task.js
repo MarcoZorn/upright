@@ -4,13 +4,18 @@ import { makeEnv, observe, stepEnv, think, DT, ACT_EVERY } from './sim.js';
 import { mulberry32 } from './mlp.js';
 
 // targets: [speed m/s, probability]. Later stages keep sampling earlier targets so nothing is forgotten.
+// Graduation also needs the perturbed population to survive (m.popUp): exploring around a brain that only
+// just balances makes every sibling fall, and then ES ranks fallers and learns to dive.
 export const STAGES = [
-  { name: 'stand', targets: [[0, 1]], push: 20, graduate: (m) => m.upFrac >= 0.9 },
-  { name: 'walk', targets: [[1, 0.8], [0, 0.2]], push: 15, graduate: (m) => m.upFrac >= 0.95 && m.speed[1] > 0.85 && m.speed[1] < 1.2 },
-  { name: 'run', targets: [[3, 0.6], [1, 0.2], [0, 0.2]], push: 10, graduate: () => false },
+  { name: 'stand', targets: [[0, 1]], push: 20, graduate: (m) => m.upFrac >= 0.95 && m.popUp >= 0.8 },
+  { name: 'shuffle', targets: [[0.4, 0.8], [0, 0.2]], push: 10, graduate: (m) => m.upFrac >= 0.9 && m.popUp >= 0.7 && m.speed[0.4] > 0.3 },
+  { name: 'walk', targets: [[1, 0.6], [0.4, 0.2], [0, 0.2]], push: 10, graduate: (m) => m.upFrac >= 0.9 && m.popUp >= 0.7 && m.speed[1] > 0.8 },
+  { name: 'jog', targets: [[2, 0.6], [1, 0.2], [0, 0.2]], push: 8, graduate: (m) => m.upFrac >= 0.9 && m.popUp >= 0.7 && m.speed[2] > 1.6 },
+  { name: 'run', targets: [[3, 0.6], [2, 0.1], [1, 0.1], [0, 0.2]], push: 8, graduate: () => false },
 ];
 export const SECONDS = 10;
 const CTRL_DT = DT * ACT_EVERY;
+const REWIND = 30; // brain steps = 1 s
 const VEL = DOFS.length; // obs offset of joint velocities (scaled 0.1)
 const UP_Y = DOFS.length * 2 + 1; // world-up seen from the torso, y component = uprightness
 
@@ -36,6 +41,9 @@ export function episode(R, brain, { stage = 0, seed = 1, target = sampleTarget(s
   let nextPush = 2 + 2 * rng();
   let fitness = 0, upTime = 0, energy = 0, done = false;
   const steps = Math.round(seconds / CTRL_DT);
+  // Ring buffers of the last REWIND steps: on a fall, the forward-speed credit and distance of the final
+  // second are taken back, so diving forward pays nothing; only progress that was survived counts.
+  const trackHist = new Float64Array(REWIND), zHist = new Float64Array(REWIND);
   for (let s = 0; s < steps && !done; s++) {
     const obs = observe(env);
     if (stats) for (let i = 0; i < OBS_SIZE; i++) { stats.sum[i] += obs[i]; stats.sumsq[i] += obs[i] * obs[i]; }
@@ -51,16 +59,26 @@ export function episode(R, brain, { stage = 0, seed = 1, target = sampleTarget(s
     }
     stepEnv(env, out);
     if (env.t >= nextPush) { kick(pushMax); nextPush += 2 + 2 * rng(); }
-    if (fallen(env.rd)) { fitness -= 10; done = true; break; }
+    if (fallen(env.rd)) {
+      for (const t of trackHist) if (t > 0) fitness -= t;
+      fitness -= 10;
+      done = true;
+      break;
+    }
     upTime = env.t;
     const v = pelvis.linvel();
     const track = target === 0
       ? -(Math.abs(v.z) + Math.abs(v.x))
       : (3 * Math.min(v.z, target) - 1.5 * Math.max(0, v.z - target) - Math.abs(v.x)) / target;
+    trackHist[s % REWIND] = track;
+    zHist[s % REWIND] = pelvis.translation().z;
     fitness += alive * (1 + 0.5 * obs[UP_Y]) + track - 0.0005 * power;
     energy += power * CTRL_DT;
   }
-  const p = pelvis.translation();
+  // Honest distance: where the pelvis was a second before the fall (or at the end, if it never fell).
+  const lastUp = Math.round(upTime / CTRL_DT) - 1;
+  const dist = !done ? pelvis.translation().z : lastUp >= REWIND ? zHist[(lastUp - REWIND + 1) % REWIND] : 0;
+  const creditTime = done ? Math.max(0, upTime - REWIND * CTRL_DT) : upTime;
   env.world.free();
-  return { fitness, upTime, upFrac: upTime / seconds, dist: p.z, speed: upTime > 0 ? p.z / upTime : 0, energy, target };
+  return { fitness, upTime, upFrac: upTime / seconds, dist, speed: creditTime > 0 ? dist / creditTime : 0, energy, target };
 }
