@@ -95,3 +95,19 @@ Next things to try:
 Running now, side by side, about 11 workers each:
 - **A:** the CPG alone, MLP frozen.
 - **B:** a plain 64×64 MLP, the no-CPG control arm.
+
+### What didn't work tonight (so I don't repeat it)
+All runs used 64×64 nets, 7–11 workers each and honest metrics.
+
+| run | setup | result |
+|---|---|---|
+| cpgA | CPG only (MLP frozen), alive 1, σ_cpg 0.03, adaptive σ, shuffle stage | 200 gens standing still: amplitudes stayed ≈ 0, 0 footsteps |
+| mlpB | plain MLP, same reward | passed stand at ~gen 130 (strict gate); then 60 gens standing still in shuffle |
+| cpgA/mlpB + `--alive 0` | resumed without the alive bonus | both dive again within 15 gens (honest speed ~0.2 m/s, 20% upright, 0 steps) |
+| P / S | CPG, alive 0.3 or 0, longer rewind (3 s / whole run), fall penalty 30 / 10 | standing still, Adam step shrinking to 0.01 |
+| Q | plain MLP, alive 0.3, fall penalty 30, from stand | collapsed: 7% upright after 700 short gens |
+| T / U / V | CPG, fixed σ_cpg 0.08 / 0.15 / 0.3, 3 s episodes, no alive bonus | U ran off to the minimum frequency; 3 s episodes are too short for the gait metrics to say anything |
+
+**What I think is going on.** Near zero amplitude, the CPG landscape is flat: a small oscillation just shakes the body in place and earns nothing. The amplitude where a foot actually leaves the ground is a cliff (it falls) rather than a slope. The adaptive σ also shrinks the noise whenever siblings fall, which is the opposite of what an open-loop oscillator needs.
+
+**The bigger mistake.** I kept killing runs after 10–20 minutes. ES needs on the order of 10⁵ episodes for MuJoCo's humanoid; the first main run stopped at gen 24, which is ~12k episodes. So the plain setup has never had a fair budget. For the rest of the night, two long runs (W: plain 64×64; X: 64×64 + learnable CPG), 256 pairs, untouched.
