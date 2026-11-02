@@ -10,6 +10,10 @@ import { createMLP, mulberry32, serialize, toB64, fromB64 } from './src/mlp.js';
 import { makeNoise, esGradient, adamStep, newStats, mergeStats, statsToNorm } from './src/es.js';
 import { STAGES, sampleTarget } from './src/task.js';
 import { CPG_SIZE, cpgFreq, cpgDphi } from './src/cpg.js';
+import { rollout } from './src/sim.js';
+import R from '@dimforge/rapier3d-compat';
+import { deserialize } from './src/mlp.js';
+await R.init();
 
 const args = Object.fromEntries(process.argv.slice(2).join(' ').split('--').filter(Boolean)
   .map((s) => s.trim().split(/\s+/)).map(([k, v]) => [k, v ?? true]));
@@ -83,6 +87,11 @@ function saveBrain(file, meta, params = theta, nrm = currentNorm()) {
 function publish(meta, params, nrm) {
   fs.mkdirSync('brains', { recursive: true });
   const file = `${path.basename(dir)}-gen${String(st.gen).padStart(5, '0')}.json`;
+  // Proof of walk: the hash of a plain 10 s replay at the stage's target speed. The viewer recomputes it.
+  const target = STAGES[st.stage].targets[0][0];
+  saveBrain(path.join('brains', file), meta, params, nrm);
+  const b = deserialize(fs.readFileSync(path.join('brains', file), 'utf8'));
+  meta.proof = { target, gravity: cfg.gravity, hash10: rollout(R, b, { seconds: 10, targetSpeed: target, stopOnFall: false, gravity: cfg.gravity }).hash.toString(16) };
   saveBrain(path.join('brains', file), meta, params, nrm);
   const idxFile = 'brains/index.json';
   const idx = fs.existsSync(idxFile) ? JSON.parse(fs.readFileSync(idxFile, 'utf8')) : [];

@@ -65,8 +65,8 @@ export function think(brain, obs, step = 0) {
 }
 
 // Runs one episode headless. Returns how long it stayed up and a hash of the whole trajectory.
-export function rollout(R, brain, { seconds = 10, targetSpeed = 0, stopOnFall = true } = {}) {
-  const env = makeEnv(R, { targetSpeed });
+export function rollout(R, brain, { seconds = 10, targetSpeed = 0, stopOnFall = true, gravity = 9.81 } = {}) {
+  const env = makeEnv(R, { targetSpeed, gravity });
   env.freq = brainFreq(brain);
   let hash = 0x811c9dc5, upTime = 0;
   const steps = Math.round(seconds / (DT * ACT_EVERY));
