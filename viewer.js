@@ -89,14 +89,14 @@ async function loadIndexed(i) {
 }
 
 // ---------- sim ----------
-let env, brain, brainName, hash, upTime, wasDown, contacts, acc = 0, paused = false, follow = true;
+let env, brain, brainName, hash, upTime, wasDown, contacts, acc = 0, paused = false, follow = true, tampered = false;
 let targetSpeed = 0;
 
 function reset() {
   env?.world.free();
   env = makeEnv(R, { targetSpeed });
   env.freq = brainFreq(brain);
-  hash = 0x811c9dc5; upTime = 0; wasDown = false; contacts = [0, 0]; acc = 0;
+  hash = 0x811c9dc5; upTime = 0; wasDown = false; contacts = [0, 0]; acc = 0; tampered = false;
   for (const m of prints.splice(0)) scene.remove(m);
   $('fall').style.opacity = 0;
 }
@@ -138,7 +138,7 @@ function setTarget(v) {
   targetSpeed = v;
   $('ts').value = v;
   $('tsLabel').textContent = v.toFixed(1) + ' m/s';
-  if (env) env.targetSpeed = v;
+  if (env) { env.targetSpeed = v; if (env.step > 0) tampered = true; }
 }
 $('ts').oninput = () => setTarget(+$('ts').value);
 
@@ -179,6 +179,7 @@ $('pause').onclick = () => { paused = !paused; $('pause').textContent = paused ?
 $('follow').onclick = () => { follow = !follow; $('follow').textContent = `follow: ${follow ? 'on' : 'off'}`; };
 $('push').onclick = () => {
   const a = Math.random() * Math.PI * 2;
+  tampered = true;
   env.rd.bodies.torso.applyImpulse({ x: Math.cos(a) * 40, y: 0, z: Math.sin(a) * 40 }, true);
 };
 $('load').onclick = () => $('file').click();
@@ -203,12 +204,21 @@ function resize() {
 addEventListener('resize', resize);
 resize();
 
+// Proof of walk: a trained brain carries the hash of its 10 s replay from training; compare with ours.
+function proofStatus() {
+  const p = brain?.meta?.proof;
+  if (!p) return '—';
+  if (tampered || targetSpeed !== p.target) return 'n/a (pushed or speed changed)';
+  if (!env.hash10) return 'checking…';
+  return env.hash10 === p.hash10 ? '✓ matches training' : '✗ differs from training';
+}
+
 function stats() {
   const p = env.rd.bodies.pelvis.translation();
   const rows = [
     ['brain', brainName], ['time', env.t.toFixed(2) + ' s'], ['upright', upTime.toFixed(2) + ' s'],
     ['pelvis height', p.y.toFixed(2) + ' m'], ['speed', env.rd.bodies.pelvis.linvel().z.toFixed(2) + ' m/s'], ['distance', Math.hypot(p.x, p.z).toFixed(2) + ' m'],
-    ['feet', `${contacts[0] ? 'L' : '·'} ${contacts[1] ? 'R' : '·'}`], ['hash @ 10 s', env.hash10 ?? '…'],
+    ['feet', `${contacts[0] ? 'L' : '·'} ${contacts[1] ? 'R' : '·'}`], ['hash @ 10 s', env.hash10 ?? '…'], ['replay', proofStatus()],
   ];
   $('stats').innerHTML = rows.map(([k, v]) => `<span>${k}</span><span>${v}</span>`).join('');
 }
