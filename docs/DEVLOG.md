@@ -45,3 +45,18 @@ Caveat: brain forward passes use `Math.tanh`, which isn't guaranteed bit-identic
 **Random brains** flail and fall within about 1.5 s. Good: the task isn't trivial.
 
 Next: the training code, after the plan in [PLAN.md](PLAN.md) is agreed.
+
+## 2026-11-02 (evening): training loop in, walking not yet
+
+- **Built:** ES (shared noise table, antithetic pairs, centered ranks, Adam), the stand/walk/run task with seeded pushes, a worker pool with checkpoint/resume, the NEAT baseline (my neat-from-scratch engine, vendored) and the ES-vs-NEAT plot. Training is capped at 70% of the CPUs and runs at nice 19.
+- **Senses:** torso-frame linear velocity added (vestibular, not global position).
+- **Tanh:** brains now use the Padé tanh from neat-from-scratch, so a trained brain replays bit-identically in every JS engine.
+- **Hyperparameters:** a sweep on the stand stage picked σ = 0.005 and lr = 0.001. σ = 0.02 or lr = 0.01 wreck the zero-init brain within a few generations.
+- **Stand:** graduated at gen 2. The zero-init output layer means generation 0 already holds the rest pose.
+- **Walk, gens 3–24:** stuck at the local optimum of standing still. Speed is 0.00 at targets 0, 1 and 3 alike. Population fitness climbs towards the centre brain's (170 → 385), so ES is making the brain *insensitive to noise* rather than finding a gait.
+
+Next things to try:
+1. Larger σ in the walk stage, for more exploration.
+2. A phase clock input (sin/cos of time). It's the standard trick for gaits with a memoryless MLP.
+3. A reward that pays for forward lean and stepping before it pays for speed.
+4. A larger population.
