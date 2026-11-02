@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import R from '@dimforge/rapier3d-compat';
 import { PARTS, fallen, OBS_SIZE } from './src/body.js';
-import { makeEnv, observe, stepEnv, stateHash, think, zeroBrain, randomBrain, DT, ACT_EVERY } from './src/sim.js';
+import { makeEnv, observe, stepEnv, stateHash, think, zeroBrain, randomBrain, brainFreq, DT, ACT_EVERY } from './src/sim.js';
 import { deserialize } from './src/mlp.js';
 
 await R.init();
@@ -95,6 +95,7 @@ let targetSpeed = 0;
 function reset() {
   env?.world.free();
   env = makeEnv(R, { targetSpeed });
+  env.freq = brainFreq(brain);
   hash = 0x811c9dc5; upTime = 0; wasDown = false; contacts = [0, 0]; acc = 0;
   for (const m of prints.splice(0)) scene.remove(m);
   $('fall').style.opacity = 0;
@@ -117,7 +118,7 @@ async function pickBrain() {
 }
 
 function tick() {
-  stepEnv(env, think(brain, observe(env)));
+  stepEnv(env, think(brain, observe(env), env.step));
   hash = stateHash(env, hash);
   if (Math.abs(env.t - 10) < 1e-6) env.hash10 = hash.toString(16);
   const down = fallen(env.rd);

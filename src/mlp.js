@@ -82,12 +82,16 @@ export function fromB64(b64) {
 }
 
 // Brain file: JSON with layer sizes, metadata, optional input normalisation, parameters as base64 float32.
+// CPG brains (see sim.cpgBrain) store their whole vector [cpg | mlp] and the CPG block size.
 export function serialize(mlp, meta = {}) {
   const norm = mlp.norm && { mean: toB64(mlp.norm.mean), std: toB64(mlp.norm.std) };
-  return JSON.stringify({ layers: mlp.layers, meta, norm, params: toB64(mlp.params) });
+  const cpg = mlp.cpg ? mlp.cpg.length : undefined;
+  return JSON.stringify({ layers: mlp.layers, meta, norm, cpg, params: toB64(mlp.cpg ? mlp.full : mlp.params) });
 }
 
 export function deserialize(text) {
-  const { layers, meta, norm, params } = JSON.parse(text);
-  return { layers, meta, params: fromB64(params), norm: norm && { mean: fromB64(norm.mean), std: fromB64(norm.std) } };
+  const { layers, meta, norm, cpg, params } = JSON.parse(text);
+  const full = fromB64(params);
+  const b = { layers, meta, norm: norm && { mean: fromB64(norm.mean), std: fromB64(norm.std) } };
+  return cpg ? { ...b, full, cpg: full.subarray(0, cpg), params: full.subarray(cpg) } : { ...b, params: full };
 }
