@@ -3,7 +3,11 @@ import R from '@dimforge/rapier3d-compat';
 import assert from 'node:assert/strict';
 import { Worker, isMainThread, parentPort, workerData } from 'node:worker_threads';
 import { rollout, zeroBrain, randomBrain, LAYERS } from './src/sim.js';
-import { serialize, deserialize, paramCount } from './src/mlp.js';
+import { serialize, deserialize, paramCount, createMLP, mulberry32 } from './src/mlp.js';
+import { makeNoise, centeredRanks, esGradient, adamStep } from './src/es.js';
+import { episode } from './src/task.js';
+import { execFileSync } from 'node:child_process';
+import fs from 'node:fs';
 
 await R.init();
 
@@ -52,6 +56,58 @@ if (!isMainThread) {
     assert.deepEqual(loaded.params, brain.params);
     const opts = { seconds: 5, stopOnFall: false };
     assert.equal(rollout(R, loaded, opts).hash, rollout(R, brain, opts).hash);
+  });
+
+  await check('centered ranks', () => {
+    assert.deepEqual([...centeredRanks([10, -3, 7, 100])], [1 / 6, -0.5, -1 / 6, 0.5].map(Math.fround));
+  });
+
+  // Small ES loop used by the next two checks: antithetic pairs, rank shaping, Adam.
+  const es = (theta, f, { gens, pairs, sigma, lr, seed = 1 }) => {
+    const noise = makeNoise(theta.length + 50_000, seed), rng = mulberry32(seed), adam = {};
+    for (let g = 0; g < gens; g++) {
+      const ps = [];
+      for (let k = 0; k < pairs; k++) {
+        const off = Math.floor(rng() * 50_000), plus = theta.slice(), minus = theta.slice();
+        for (let i = 0; i < theta.length; i++) { plus[i] += sigma * noise[off + i]; minus[i] -= sigma * noise[off + i]; }
+        ps.push({ off, plus: f(plus, g * 1000 + k), minus: f(minus, g * 1000 + k) });
+      }
+      adamStep(theta, esGradient(theta.length, noise, ps, sigma), adam, { lr, l2: 0 });
+    }
+  };
+
+  await check('ES solves a toy problem (500-dim quadratic)', () => {
+    const target = Float32Array.from({ length: 500 }, (_, i) => Math.sin(i));
+    const f = (x) => -x.reduce((s, v, i) => s + (v - target[i]) ** 2, 0);
+    const theta = new Float32Array(500);
+    const before = f(theta);
+    es(theta, f, { gens: 300, pairs: 20, sigma: 0.05, lr: 0.02 });
+    assert.ok(f(theta) > 0.05 * before, `${before} -> ${f(theta)}`); // >95% of the error gone
+  });
+
+  await check('ES improves the ragdoll on a short walk task', () => {
+    const brain = createMLP([LAYERS[0], 16, LAYERS[3]], 5, { zeroLast: true });
+    const evalFit = () => [1, 2, 3, 4].reduce((s, seed) => s + episode(R, brain, { stage: 1, seed, target: 1, seconds: 2 }).fitness, 0);
+    const before = evalFit();
+    es(brain.params, (p, seed) => episode(R, { ...brain, params: p }, { stage: 1, seed, target: 1, seconds: 2 }).fitness,
+      { gens: 8, pairs: 8, sigma: 0.05, lr: 0.03 });
+    const after = evalFit();
+    assert.ok(after > before + 5, `${before.toFixed(1)} -> ${after.toFixed(1)}`);
+  });
+
+  await check('training checkpoint -> resume matches an uninterrupted run', () => {
+    const run = (dir, ...a) => execFileSync('node', ['train.mjs', '--run', dir, '--quiet', '--workers', '2', '--pairs', '3',
+      '--evalSeeds', '1', '--noise', '1000000', '--saveEvery', '1000', '--publishEvery', '100000', ...a]);
+    const tmp = 'tmp/test-runs';
+    fs.rmSync(tmp, { recursive: true, force: true });
+    run(`${tmp}/straight`, '--fresh', '--gens', '4');
+    run(`${tmp}/resumed`, '--fresh', '--gens', '2');
+    run(`${tmp}/resumed`, '--gens', '2');
+    const a = JSON.parse(fs.readFileSync(`${tmp}/straight/state.json`)), b = JSON.parse(fs.readFileSync(`${tmp}/resumed/state.json`));
+    assert.equal(a.gen, 4);
+    assert.equal(b.gen, 4);
+    assert.equal(a.theta, b.theta);
+    assert.equal(a.adam.m, b.adam.m);
   });
 
   console.log(`zero-brain 10 s trajectory hash ${rollout(R, zeroBrain(), { seconds: 10, stopOnFall: false }).hash.toString(16)} (the viewer shows the same number)`);
