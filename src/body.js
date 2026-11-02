@@ -115,6 +115,8 @@ function invRotate(q, v) {
 
 export const OBS_SIZE = DOFS.length * 2 + 6 + 3 + 3 + 2 + 1 + 2 + 1;
 export const CLOCK_PERIOD = 1.0; // s; a gait clock lets a memoryless MLP step rhythmically
+// sin/cos of the 30 brain steps in one period, as literals: Math.sin/cos are left to each JS engine, a table is not.
+const CLOCK = [[0,1],[0.20791169081775931,0.9781476007338057],[0.40673664307580015,0.9135454576426009],[0.5877852522924731,0.8090169943749475],[0.7431448254773942,0.6691306063588582],[0.8660254037844386,0.5000000000000001],[0.9510565162951535,0.30901699437494745],[0.9945218953682733,0.10452846326765346],[0.9945218953682734,-0.10452846326765333],[0.9510565162951536,-0.30901699437494734],[0.8660254037844387,-0.4999999999999998],[0.7431448254773945,-0.6691306063588579],[0.5877852522924732,-0.8090169943749473],[0.40673664307580004,-0.913545457642601],[0.20791169081775931,-0.9781476007338057],[5.66553889764798e-16,-1],[-0.20791169081775907,-0.9781476007338057],[-0.4067366430758002,-0.9135454576426009],[-0.587785252292473,-0.8090169943749475],[-0.743144825477394,-0.6691306063588585],[-0.8660254037844385,-0.5000000000000004],[-0.9510565162951535,-0.30901699437494756],[-0.9945218953682733,-0.10452846326765423],[-0.9945218953682734,0.10452846326765299],[-0.9510565162951536,0.30901699437494723],[-0.8660254037844386,0.5000000000000001],[-0.743144825477394,0.6691306063588585],[-0.5877852522924734,0.8090169943749473],[-0.40673664307580015,0.913545457642601],[-0.20791169081775898,0.9781476007338057]];
 
 // Senses: joint angles + velocities, torso orientation (world up and forward seen from the torso),
 // torso angular and linear velocity (torso frame, i.e. vestibular), a gait clock, pelvis height, foot contacts, target speed. No global position.
@@ -124,7 +126,7 @@ export function sense(rd, world, ground, targetSpeed, t, obs = new Float32Array(
     const q = relQuat(d.j.parent.rotation(), d.j.child.rotation());
     const s = q.w < 0 ? -1 : 1;
     const c = d.axis === X ? q.x : d.axis === Y ? q.y : q.z;
-    obs[k++] = 2 * Math.asin(Math.max(-1, Math.min(1, s * c)));
+    obs[k++] = 2 * s * c; // ≈ angle (sin of the half angle ×2); asin would differ between JS engines
   }
   for (const d of rd.dofs) {
     const pw = d.j.parent.angvel(), cw = d.j.child.angvel();
@@ -139,7 +141,8 @@ export function sense(rd, world, ground, targetSpeed, t, obs = new Float32Array(
   obs[k++] = 0.1 * w.x; obs[k++] = 0.1 * w.y; obs[k++] = 0.1 * w.z;
   const v = invRotate(tq, rd.bodies.torso.linvel());
   obs[k++] = v.x; obs[k++] = v.y; obs[k++] = v.z;
-  obs[k++] = Math.sin(2 * Math.PI * t / CLOCK_PERIOD); obs[k++] = Math.cos(2 * Math.PI * t / CLOCK_PERIOD);
+  const [cs, cc] = CLOCK[Math.round(t * 30 / CLOCK_PERIOD) % 30];
+  obs[k++] = cs; obs[k++] = cc;
   obs[k++] = rd.bodies.pelvis.translation().y;
   obs[k++] = footContact(rd.bodies.lfoot, world, ground);
   obs[k++] = footContact(rd.bodies.rfoot, world, ground);

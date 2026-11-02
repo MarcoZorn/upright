@@ -35,7 +35,7 @@ let st;
 if (saved) {
   const s = saved;
   theta.set(fromB64(s.theta));
-  st = { gen: s.gen, stage: s.stage, adam: { t: s.adam.t, m: fromB64(s.adam.m), v: fromB64(s.adam.v) },
+  st = { gen: s.gen, stage: s.stage, adam: { t: s.adam.t, b1t: s.adam.b1t, b2t: s.adam.b2t, m: fromB64(s.adam.m), v: fromB64(s.adam.v) },
     stats: { count: s.stats.count, sum: Float64Array.from(s.stats.sum), sumsq: Float64Array.from(s.stats.sumsq) } };
   // saved settings win, except flags given on this command line (so a live run can be retuned)
   const explicit = Object.fromEntries(Object.keys(args).filter((k) => k in cfg).map((k) => [k, cfg[k]]));
@@ -56,7 +56,7 @@ function currentNorm() {
 function checkpoint() {
   const s = {
     gen: st.gen, stage: st.stage, cfg, theta: toB64(theta),
-    adam: { t: st.adam.t ?? 0, m: toB64(st.adam.m ?? new Float32Array(dim)), v: toB64(st.adam.v ?? new Float32Array(dim)) },
+    adam: { t: st.adam.t ?? 0, b1t: st.adam.b1t, b2t: st.adam.b2t, m: toB64(st.adam.m ?? new Float32Array(dim)), v: toB64(st.adam.v ?? new Float32Array(dim)) },
     stats: { count: st.stats.count, sum: [...st.stats.sum], sumsq: [...st.stats.sumsq] },
   };
   fs.writeFileSync(stateFile + '.tmp', JSON.stringify(s));

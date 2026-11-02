@@ -34,8 +34,10 @@ export function episode(R, brain, { stage = 0, seed = 1, target = sampleTarget(s
   const pushMax = STAGES[stage].push * pushScale;
   const torso = env.rd.bodies.torso, pelvis = env.rd.bodies.pelvis;
   const kick = (mag) => {
-    const a = rng() * Math.PI * 2, m = mag * (0.5 + 0.5 * rng());
-    torso.applyImpulse({ x: Math.cos(a) * m, y: 0, z: Math.sin(a) * m }, true);
+    let x, z, r; // random direction by rejection sampling: no sin/cos, same bits in every engine
+    do { x = 2 * rng() - 1; z = 2 * rng() - 1; r = x * x + z * z; } while (r > 1 || r < 1e-6);
+    const m = mag * (0.5 + 0.5 * rng()) / Math.sqrt(r);
+    torso.applyImpulse({ x: x * m, y: 0, z: z * m }, true);
   };
   kick(5);
   let nextPush = 2 + 2 * rng();

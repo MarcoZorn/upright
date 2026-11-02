@@ -37,7 +37,8 @@ export function adamStep(theta, grad, st, { lr = 0.01, b1 = 0.9, b2 = 0.999, eps
   st.m ??= new Float32Array(theta.length);
   st.v ??= new Float32Array(theta.length);
   st.t = (st.t ?? 0) + 1;
-  const a = lr * Math.sqrt(1 - b2 ** st.t) / (1 - b1 ** st.t);
+  st.b1t = (st.b1t ?? 1) * b1; st.b2t = (st.b2t ?? 1) * b2; // running products: ** isn't bit-exact across engines
+  const a = lr * Math.sqrt(1 - st.b2t) / (1 - st.b1t);
   let norm = 0;
   for (let i = 0; i < theta.length; i++) {
     const g = grad[i] - l2 * theta[i];
@@ -63,7 +64,7 @@ export function statsToNorm(s) {
   if (!s.count) return { mean, std };
   for (let i = 0; i < n; i++) {
     mean[i] = s.sum[i] / s.count;
-    std[i] = Math.max(1e-2, Math.sqrt(Math.max(0, s.sumsq[i] / s.count - mean[i] ** 2)));
+    std[i] = Math.max(1e-2, Math.sqrt(Math.max(0, s.sumsq[i] / s.count - mean[i] * mean[i])));
   }
   return { mean, std };
 }

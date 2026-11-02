@@ -21,7 +21,10 @@ export function mulberry32(seed) {
 }
 
 export function gaussian(rng) {
-  return Math.sqrt(-2 * Math.log(1 - rng())) * Math.cos(2 * Math.PI * rng());
+  // Irwin-Hall: sum of 12 uniforms - 6 ≈ N(0,1). Box-Muller needs log/cos, which differ between JS engines.
+  let s = -6;
+  for (let i = 0; i < 12; i++) s += rng();
+  return s;
 }
 
 export function paramCount(layers) {
