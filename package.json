@@ -8,6 +8,6 @@
     "test": "node test.mjs"
   },
   "dependencies": {
-    "@dimforge/rapier3d-compat": "0.21.0"
+    "@dimforge/rapier3d-compat": "npm:@dimforge/rapier3d-deterministic-compat@0.21.0"
   }
 }
