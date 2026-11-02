@@ -1,3 +1,6 @@
 tmp/
 node_modules/
 runs/*/state.json
+runs/*/state.json.tmp
+runs/*/gens/
+runs/*/latest.json
