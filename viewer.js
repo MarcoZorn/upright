@@ -213,15 +213,7 @@ function stats() {
 }
 
 // ---------- loop ----------
-const CTRL = DT * ACT_EVERY;
-let last = performance.now();
-function frame(now) {
-  const dt = Math.min(0.1, (now - last) / 1000);
-  last = now;
-  if (!paused) {
-    acc += dt * speed();
-    while (acc >= CTRL) { tick(); acc -= CTRL; }
-  }
+function draw() {
   for (const [name, b] of Object.entries(env.rd.bodies)) {
     const p = b.translation(), q = b.rotation();
     meshes[name].position.set(p.x, p.y, p.z);
@@ -238,10 +230,34 @@ function frame(now) {
   controls.update();
   renderer.render(scene, camera);
   stats();
+}
+
+const CTRL = DT * ACT_EVERY;
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.1, (now - last) / 1000);
+  last = now;
+  if (!paused) {
+    acc += dt * speed();
+    while (acc >= CTRL) { tick(); acc -= CTRL; }
+  }
+  draw();
   requestAnimationFrame(frame);
 }
 
 if (index.length) { select.value = 'trained'; }
 await pickBrain();
 requestAnimationFrame(frame);
-window.upright = { get env() { return env; }, reset, scene, camera, controls, renderer };
+// Deterministic frame capture for README clips: one brain step per frame (30 fps = real time).
+async function record({ seconds = 8, every = 1, quality = 0.85 } = {}) {
+  paused = true;
+  const frames = [];
+  for (let f = 0; f < seconds * 30; f++) {
+    tick();
+    if (f % every) continue;
+    draw();
+    frames.push(renderer.domElement.toDataURL('image/jpeg', quality));
+  }
+  return frames;
+}
+window.upright = { get env() { return env; }, reset, record, setTarget, pickBrain, scene, camera, controls, renderer, $ };
