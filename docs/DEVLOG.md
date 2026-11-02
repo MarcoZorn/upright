@@ -60,3 +60,38 @@ Next things to try:
 2. A phase clock input (sin/cos of time). It's the standard trick for gaits with a memoryless MLP.
 3. A reward that pays for forward lean and stepping before it pays for speed.
 4. A larger population.
+
+## 2026-11-02 (night): why it dives, determinism for real, a rhythm to explore with
+
+**Why every walk attempt turned into a dive.** Three sweeps (σ 0.005–0.02, alive bonus 0.5–1, push scale 0.3–1, with a 1 s clock input) all ended the same way: lunge forward, fall at about 1.8 s, eval fitness dropping from 440 (standing) to 30–80. The arithmetic behind it:
+- The output layer starts at zero, so early on the noise on each joint target is about σ·√(hidden·E[h²]), roughly 11σ for 512 hidden units.
+- At σ = 0.02 that's about 23% of every joint's range, on all 30 joints at once. Practically every perturbed sibling falls.
+- ES then ranks fallers against fallers, and the one that falls *forward* fastest wins.
+- At σ = 0.005 the siblings survive, but random static offsets on 30 joints are never a footstep, so nothing pulls towards walking.
+
+**Metric hygiene.**
+- `speed` used to be `pelvis z / upTime`, which counts the topple itself. A brain that just tips forward used to read as 0.4–0.6 m/s; it now reads −0.02.
+- On a fall, the last second of speed credit and distance are taken back.
+- The fall test is stricter: head below 1.3 m or torso past 45°. It used to be head below 1.0 m.
+
+**Curriculum.**
+- The speed ramp is now stand → shuffle 0.4 → walk 1 → jog 2 → run 3 m/s.
+- There are no pushes until it walks.
+- A stage only graduates when the *perturbed population* also survives (≥ 80% in stand). The old stand stage graduated at gen 2 by luck; the brain didn't really balance, so every exploration around it toppled.
+- With the strict gate, a 64×64 net passes stand with 95% of its siblings upright. A 512×512 net still hadn't passed at gen 26.
+
+**Determinism, for real this time.** The "same bits in every JS engine" claim wasn't true. The npm `rapier3d-compat` build only promises determinism on one machine, and `Math.sin`, `asin`, `log` and `**` were on the hot path; Node and Chrome only agreed because both are V8. Now:
+- Rapier's deterministic build (aliased in `package.json`, and the browser import map points at it). It is about 7% slower.
+- A polynomial sine (only `+` and `*`, error < 1e-6).
+- The raw half-angle term instead of `asin`.
+- A rejection-sampled push direction.
+- An Irwin-Hall noise table instead of Box-Muller.
+- Running products for Adam's bias correction.
+
+`test.mjs` now runs the same random 316k-param brain with pushes under Bun (JavaScriptCore). Its trajectory hash and fitness match V8 exactly.
+
+**Structured exploration.** `src/cpg.js` adds a central pattern generator: per joint, offset + A·sin(phase + φ). The right leg mirrors the left. Stride **frequency and inter-leg phase are learned**, starting at 1 Hz and π (an alternating walk), so a skip or a faster cadence isn't ruled out by construction. That matters for the Moon question in [ROADMAP.md](ROADMAP.md). A residual MLP, starting at zero, adds corrections on top. `src/gait.js` measures duty factor, flight fraction, cadence, inter-leg phase, skip rate and Froude number from foot contacts. σ now adapts to keep 40–80% of the perturbed siblings upright.
+
+Running now, side by side, about 11 workers each:
+- **A:** the CPG alone, MLP frozen.
+- **B:** a plain 64×64 MLP, the no-CPG control arm.
