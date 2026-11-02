@@ -20,7 +20,7 @@ function run(job, sign, stats) {
   if (sign === 0) full.set(theta);
   else for (let i = 0; i < full.length; i++) full[i] = theta[i] + sign * job.sigma * scale[i] * noise[job.off + i];
   return episode(R, brain, { stage: job.stage, seed: job.seed, target: job.target, stats, alive: job.alive,
-    pushScale: job.pushScale, gravity: job.gravity, gait: job.gait, rewind: job.rewind, fallPenalty: job.fallPenalty });
+    pushScale: job.pushScale, gravity: job.gravity, gait: job.gait, rewind: job.rewind, fallPenalty: job.fallPenalty, seconds: job.seconds });
 }
 
 parentPort.on('message', (job) => {
