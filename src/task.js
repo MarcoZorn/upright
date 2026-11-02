@@ -5,7 +5,7 @@ import { mulberry32 } from './mlp.js';
 
 // targets: [speed m/s, probability]. Later stages keep sampling earlier targets so nothing is forgotten.
 export const STAGES = [
-  { name: 'stand', targets: [[0, 1]], push: 30, graduate: (m) => m.upFrac >= 0.97 },
+  { name: 'stand', targets: [[0, 1]], push: 20, graduate: (m) => m.upFrac >= 0.9 },
   { name: 'walk', targets: [[1, 0.8], [0, 0.2]], push: 15, graduate: (m) => m.upFrac >= 0.95 && m.speed[1] > 0.85 && m.speed[1] < 1.2 },
   { name: 'run', targets: [[3, 0.6], [1, 0.2], [0, 0.2]], push: 10, graduate: () => false },
 ];
