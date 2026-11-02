@@ -76,6 +76,7 @@ try { index = await (await fetch('brains/index.json')).json(); } catch { /* no t
 const select = $('brain');
 const options = [['zero', 'zero: holds the rest pose'], ...[1, 2, 3, 4, 5].map((s) => [`random:${s}`, `random init, seed ${s}`])];
 if (index.length) options.unshift(['trained', 'trained (pick generation)']);
+const STAGE_SPEED = { stand: 0, walk: 1, run: 3 };
 for (const [v, t] of options) select.add(new Option(t, v));
 const gen = $('gen');
 gen.max = Math.max(0, index.length - 1);
@@ -89,7 +90,7 @@ async function loadIndexed(i) {
 
 // ---------- sim ----------
 let env, brain, brainName, hash, upTime, wasDown, contacts, acc = 0, paused = false, follow = true;
-const targetSpeed = 0;
+let targetSpeed = 0;
 
 function reset() {
   env?.world.free();
@@ -109,6 +110,8 @@ async function pickBrain() {
     const e = index[+gen.value];
     brainName = `gen ${e.gen}`;
     $('genLabel').textContent = `${e.gen}${e.stage ? ' · ' + e.stage : ''}`;
+    setTarget(STAGE_SPEED[e.stage] ?? 0);
+    drawChart(e.gen);
   }
   reset();
 }
@@ -130,6 +133,42 @@ function tick() {
 }
 
 // ---------- ui ----------
+function setTarget(v) {
+  targetSpeed = v;
+  $('ts').value = v;
+  $('tsLabel').textContent = v.toFixed(1) + ' m/s';
+  if (env) env.targetSpeed = v;
+}
+$('ts').oninput = () => setTarget(+$('ts').value);
+
+// Training curve from the run's log (one JSON line per generation).
+let log = [];
+try {
+  const runName = index.at(-1)?.run ?? 'main';
+  log = (await (await fetch(`runs/${runName}/log.jsonl`)).text()).trim().split('\n').map((l) => JSON.parse(l));
+} catch { /* no log yet */ }
+function drawChart(markGen) {
+  if (!log.length) return;
+  $('chartBox').style.display = 'block';
+  const c = $('chart'), g = c.getContext('2d'), W = c.width, H = c.height, pad = 6;
+  g.clearRect(0, 0, W, H);
+  const n = log.length, fx = (i) => pad + (i / Math.max(1, n - 1)) * (W - 2 * pad);
+  const fits = log.map((l) => l.fitness), lo = Math.min(...fits), hi = Math.max(...fits);
+  const fy = (v) => H - pad - ((v - lo) / (hi - lo || 1)) * (H - 2 * pad);
+  const colors = { stand: '#f2a65a22', walk: '#7fb7a422', run: '#c97b9a22' };
+  log.forEach((l, i) => { g.fillStyle = colors[l.stage] ?? '#ffffff11'; const h = l.upFrac * (H - 2 * pad); g.fillRect(fx(i) - 1, H - pad - h, Math.max(2, W / n), h); });
+  g.strokeStyle = '#f2a65a'; g.lineWidth = 2; g.beginPath();
+  log.forEach((l, i) => (i ? g.lineTo(fx(i), fy(l.fitness)) : g.moveTo(fx(i), fy(l.fitness))));
+  g.stroke();
+  if (markGen !== undefined) {
+    const i = log.findIndex((l) => l.gen === markGen);
+    if (i >= 0) { g.strokeStyle = '#e9e4da'; g.lineWidth = 1; g.beginPath(); g.moveTo(fx(i), 0); g.lineTo(fx(i), H); g.stroke(); }
+  }
+  g.fillStyle = '#8d877c'; g.font = '20px ui-monospace, monospace';
+  g.fillText(`gen ${log.at(-1).gen}`, W - 130, 24);
+}
+drawChart();
+
 const speed = () => 10 ** +$('speed').value;
 $('speed').oninput = () => { $('speedLabel').textContent = speed().toFixed(2) + '×'; };
 select.onchange = pickBrain;
@@ -167,7 +206,7 @@ function stats() {
   const p = env.rd.bodies.pelvis.translation();
   const rows = [
     ['brain', brainName], ['time', env.t.toFixed(2) + ' s'], ['upright', upTime.toFixed(2) + ' s'],
-    ['pelvis height', p.y.toFixed(2) + ' m'], ['distance', Math.hypot(p.x, p.z).toFixed(2) + ' m'],
+    ['pelvis height', p.y.toFixed(2) + ' m'], ['speed', env.rd.bodies.pelvis.linvel().z.toFixed(2) + ' m/s'], ['distance', Math.hypot(p.x, p.z).toFixed(2) + ' m'],
     ['feet', `${contacts[0] ? 'L' : '·'} ${contacts[1] ? 'R' : '·'}`], ['hash @ 10 s', env.hash10 ?? '…'],
   ];
   $('stats').innerHTML = rows.map(([k, v]) => `<span>${k}</span><span>${v}</span>`).join('');
@@ -202,6 +241,7 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 
+if (index.length) { select.value = 'trained'; }
 await pickBrain();
 requestAnimationFrame(frame);
 window.upright = { get env() { return env; }, reset, scene, camera, controls, renderer };

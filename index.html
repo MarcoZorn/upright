@@ -39,6 +39,10 @@
   #hint { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); color: var(--dim); }
   #fall { position: fixed; top: 22px; left: 50%; transform: translateX(-50%); color: var(--accent);
     font-size: 15px; opacity: 0; transition: opacity .3s; }
+  #chartBox { position: fixed; right: 16px; bottom: 16px; width: 340px; padding: 10px 12px 8px;
+    background: #14130fcc; border: 1px solid var(--line); border-radius: 10px; backdrop-filter: blur(8px); display: none; }
+  #chartTitle { color: var(--dim); font-size: 11px; margin-bottom: 4px; }
+  #chart { width: 100%; height: 120px; display: block; }
   a { color: var(--accent); }
   kbd { border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; }
 </style>
@@ -46,7 +50,7 @@
 <body>
 <div id="panel">
   <h1>upright</h1>
-  <p>a ragdoll learning to stand</p>
+  <p>a ragdoll learning to stand, walk and run</p>
 
   <label for="brain">brain</label>
   <select id="brain"></select>
@@ -54,7 +58,10 @@
   <label for="gen">generation <span id="genLabel"></span></label>
   <input id="gen" type="range" min="0" max="0" value="0" disabled>
 
-  <label for="speed">speed <span id="speedLabel">1.00×</span></label>
+  <label for="ts">target speed <span id="tsLabel">0.0 m/s</span></label>
+  <input id="ts" type="range" min="0" max="3" step="0.1" value="0">
+
+  <label for="speed">sim speed <span id="speedLabel">1.00×</span></label>
   <input id="speed" type="range" min="-3" max="1" step="0.05" value="0">
 
   <div class="row">
@@ -71,6 +78,7 @@
   <div id="stats"></div>
 </div>
 <div id="fall">fell</div>
+<div id="chartBox"><div id="chartTitle">training: eval fitness (line), upright % (shade)</div><canvas id="chart" width="640" height="240"></canvas></div>
 <div id="hint">drag to orbit · scroll to zoom · <kbd>space</kbd> pause · <kbd>r</kbd> reset · <kbd>p</kbd> push</div>
 <script type="module" src="viewer.js"></script>
 </body>
