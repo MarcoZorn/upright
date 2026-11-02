@@ -85,14 +85,14 @@ if (!isMainThread) {
     assert.ok(f(theta) > 0.05 * before, `${before} -> ${f(theta)}`); // >95% of the error gone
   });
 
-  await check('ES improves the ragdoll on a short walk task', () => {
+  await check('ES improves the ragdoll on a short task (move forward at 0.4 m/s, 3 s, no alive bonus)', () => {
     const brain = createMLP([LAYERS[0], 16, LAYERS[3]], 5, { zeroLast: true });
-    const evalFit = () => [1, 2, 3, 4].reduce((s, seed) => s + episode(R, brain, { stage: 1, seed, target: 1, seconds: 2 }).fitness, 0);
+    const opts = (seed) => ({ stage: 1, seed, target: 0.4, seconds: 3, alive: 0 });
+    const evalFit = () => [1, 2, 3, 4].reduce((s, seed) => s + episode(R, brain, opts(seed)).fitness, 0);
     const before = evalFit();
-    es(brain.params, (p, seed) => episode(R, { ...brain, params: p }, { stage: 1, seed, target: 1, seconds: 2 }).fitness,
-      { gens: 8, pairs: 8, sigma: 0.05, lr: 0.03 });
+    es(brain.params, (p, seed) => episode(R, { ...brain, params: p }, opts(seed)).fitness, { gens: 8, pairs: 8, sigma: 0.05, lr: 0.03 });
     const after = evalFit();
-    assert.ok(after > before + 5, `${before.toFixed(1)} -> ${after.toFixed(1)}`);
+    assert.ok(after > before + 15, `${before.toFixed(1)} -> ${after.toFixed(1)}`);
   });
 
   await check('training checkpoint -> resume matches an uninterrupted run', () => {
@@ -108,6 +108,38 @@ if (!isMainThread) {
     assert.equal(b.gen, 4);
     assert.equal(a.theta, b.theta);
     assert.equal(a.adam.m, b.adam.m);
+  });
+
+  await check('gait instruments classify hand-written footfalls', async () => {
+    const { analyzeGait } = await import('./src/gait.js');
+    const seq = (pattern, reps) => pattern.repeat(reps).split('').map(Number);
+    // walk: 30-step stride, each foot down 20 steps, overlapping (double support), right half a stride behind
+    const walkL = seq('1'.repeat(20) + '0'.repeat(10), 8), walkR = [...walkL.slice(15), ...walkL.slice(0, 15)];
+    const w = analyzeGait(walkL, walkR, 1 / 30, 1);
+    assert.ok(w.duty > 0.6 && w.flight === 0 && Math.abs(w.dphi - Math.PI) < 0.3 && w.skip === 0, JSON.stringify(w));
+    // run: each foot down 10 of 30 steps, alternating, with flight phases between
+    const runL = seq('1'.repeat(10) + '0'.repeat(20), 8), runR = [...runL.slice(15), ...runL.slice(0, 15)];
+    const r = analyzeGait(runL, runR, 1 / 30, 3);
+    assert.ok(r.duty < 0.5 && r.flight > 0.2 && Math.abs(r.dphi - Math.PI) < 0.3, JSON.stringify(r));
+    // skip: L L R R ... (each foot lands twice in a row)
+    const skipL = seq('1100000000' + '1100000000' + '0'.repeat(20), 6), skipR = [...skipL.slice(20), ...skipL.slice(0, 20)];
+    assert.ok(analyzeGait(skipL, skipR, 1 / 30).skip > 0.4);
+    assert.ok(Math.abs(analyzeGait(walkL, walkR, 1 / 30, Math.sqrt(9.81 * 0.92 * 0.5)).froude - 0.5) < 1e-9);
+  });
+
+  await check('polynomial sin matches Math.sin to 1e-6; CPG starts at rest and mirrors the legs', async () => {
+    const { sinP } = await import('./src/trig.js');
+    for (let x = -20; x < 20; x += 0.01) assert.ok(Math.abs(sinP(x) - Math.sin(x)) < 1e-6, `${x}`);
+    const { cpgAct, CPG_SIZE } = await import('./src/cpg.js');
+    const { DOFS } = await import('./src/body.js');
+    const c = new Float32Array(CPG_SIZE);
+    assert.ok(cpgAct(c, 7, new Float32Array(DOFS.length)).every((v) => v === 0));
+    const li = DOFS.findIndex((d) => d.joint === 'pelvis-lthigh' && d.axis === 3), ri = DOFS.findIndex((d) => d.joint === 'pelvis-rthigh' && d.axis === 3);
+    c.fill(0.3); c[CPG_SIZE - 2] = 0; c[CPG_SIZE - 1] = 0; // 1 Hz, half-cycle offset: right = left half a period later
+    for (let step = 0; step < 30; step++) {
+      const a = cpgAct(c, step, new Float32Array(DOFS.length)), b = cpgAct(c, step + 15, new Float32Array(DOFS.length));
+      assert.ok(Math.abs(a[ri] - b[li]) < 1e-6);
+    }
   });
 
   await check('a second JS engine (Bun / JavaScriptCore) reproduces the same trajectory and fitness', () => {
