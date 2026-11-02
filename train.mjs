@@ -19,6 +19,7 @@ const cfg = {
   gens: +(args.gens ?? Infinity), noise: +(args.noise ?? 32_000_000), evalSeeds: +(args.evalSeeds ?? 8),
   saveEvery: +(args.saveEvery ?? 10), publishEvery: +(args.publishEvery ?? 50), quiet: !!args.quiet,
   stage: args.stage !== undefined ? +args.stage : undefined,
+  alive: +(args.alive ?? 1), pushScale: +(args.pushScale ?? 1),
 };
 const dir = cfg.run, stateFile = path.join(dir, 'state.json'), logFile = path.join(dir, 'log.jsonl');
 fs.mkdirSync(path.join(dir, 'gens'), { recursive: true });
@@ -116,11 +117,11 @@ while (!stopping && st.gen < endGen) {
   const jobs = [];
   for (let k = 0; k < cfg.pairs; k++) {
     const seed = hash(cfg.seed, st.gen, k);
-    jobs.push({ off: Math.floor(rng() * (cfg.noise - dim)), seed, stage: st.stage, target: sampleTarget(st.stage, seed), sigma: cfg.sigma });
+    jobs.push({ off: Math.floor(rng() * (cfg.noise - dim)), seed, stage: st.stage, target: sampleTarget(st.stage, seed), sigma: cfg.sigma, alive: cfg.alive, pushScale: cfg.pushScale });
   }
   const targets = [...new Set(stage.targets.map(([v]) => v))];
   for (const target of targets) for (let e = 0; e < cfg.evalSeeds; e++)
-    jobs.push({ eval: true, seed: hash(cfg.seed, st.gen, 1e6 + e), stage: st.stage, target });
+    jobs.push({ eval: true, seed: hash(cfg.seed, st.gen, 1e6 + e), stage: st.stage, target, alive: cfg.alive, pushScale: cfg.pushScale });
 
   const res = await runJobs(jobs);
   const pairs = res.filter((r) => r.plus);

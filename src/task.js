@@ -22,10 +22,11 @@ export function sampleTarget(stage, seed) {
 }
 
 // Per brain step: alive bonus + uprightness + speed tracking - energy. Falling ends the episode with a penalty.
-export function episode(R, brain, { stage = 0, seed = 1, target = sampleTarget(stage, seed), seconds = SECONDS, stats } = {}) {
+// alive / pushScale: reward and difficulty knobs, set from train.mjs flags for sweeps.
+export function episode(R, brain, { stage = 0, seed = 1, target = sampleTarget(stage, seed), seconds = SECONDS, stats, alive = 1, pushScale = 1 } = {}) {
   const env = makeEnv(R, { targetSpeed: target });
   const rng = mulberry32(seed);
-  const pushMax = STAGES[stage].push;
+  const pushMax = STAGES[stage].push * pushScale;
   const torso = env.rd.bodies.torso, pelvis = env.rd.bodies.pelvis;
   const kick = (mag) => {
     const a = rng() * Math.PI * 2, m = mag * (0.5 + 0.5 * rng());
@@ -56,7 +57,7 @@ export function episode(R, brain, { stage = 0, seed = 1, target = sampleTarget(s
     const track = target === 0
       ? -(Math.abs(v.z) + Math.abs(v.x))
       : (3 * Math.min(v.z, target) - 1.5 * Math.max(0, v.z - target) - Math.abs(v.x)) / target;
-    fitness += 1 + 0.5 * obs[UP_Y] + track - 0.0005 * power;
+    fitness += alive * (1 + 0.5 * obs[UP_Y]) + track - 0.0005 * power;
     energy += power * CTRL_DT;
   }
   const p = pelvis.translation();

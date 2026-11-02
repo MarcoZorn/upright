@@ -18,7 +18,7 @@ function run(job, sign, stats) {
   const p = brain.params;
   if (sign === 0) p.set(theta);
   else for (let i = 0; i < p.length; i++) p[i] = theta[i] + sign * job.sigma * noise[job.off + i];
-  return episode(R, brain, { stage: job.stage, seed: job.seed, target: job.target, stats });
+  return episode(R, brain, { stage: job.stage, seed: job.seed, target: job.target, stats, alive: job.alive, pushScale: job.pushScale });
 }
 
 parentPort.on('message', (job) => {
