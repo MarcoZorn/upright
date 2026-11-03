@@ -25,7 +25,7 @@ export function observe(env) {
 
 export function stepEnv(env, out) {
   act(env.rd, out);
-  for (let i = 0; i < ACT_EVERY; i++) env.world.step();
+  for (let i = 0; i < ACT_EVERY; i++) { env.preStep?.(); env.world.step(); } // preStep: per-substep external forces
   env.t += DT * ACT_EVERY;
   env.step++;
 }
