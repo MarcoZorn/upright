@@ -26,12 +26,32 @@ export function sampleTarget(stage, seed) {
   return STAGES[stage].targets[0][0];
 }
 
+// "Hand of God" assist (Yu, Turk & Liu 2018): a virtual spring keeps the torso upright and a force pulls the
+// pelvis towards the target speed, so stepping is safe to discover. Training anneals `assist` to 0, and a
+// stage only graduates without it. Recomputed every physics substep: held for a whole brain step, the
+// damping term goes numerically unstable and the body launches itself.
+function helpingHand(env, target, a) {
+  const torso = env.rd.bodies.torso, pelvis = env.rd.bodies.pelvis;
+  const K = 300 * a, D = 15 * a;
+  for (const body of [torso, pelvis]) { // upright springs: torque ~ (body up) x (world up)
+    body.resetTorques(false);
+    const q = body.rotation(), w = body.angvel();
+    const ux = 2 * (q.x * q.y - q.w * q.z), uz = 2 * (q.y * q.z + q.w * q.x);
+    body.addTorque({ x: -K * uz - D * w.x, y: -D * w.y, z: K * ux - D * w.z }, true);
+  }
+  // body-weight support (up to 40% of ~71 kg) plus a gentle pull towards the target speed
+  const v = pelvis.linvel();
+  pelvis.resetForces(false);
+  pelvis.addForce({ x: -100 * a * v.x, y: 0.4 * a * 71 * 9.81, z: 100 * a * (target - v.z) }, true);
+}
+
 // Per brain step: alive bonus + uprightness + speed tracking - energy. Falling ends the episode with a penalty.
 // alive / pushScale: reward and difficulty knobs, set from train.mjs flags for sweeps.
-export function episode(R, brain, { stage = 0, seed = 1, target = sampleTarget(stage, seed), seconds = SECONDS, stats, alive = 1, pushScale = 1, gravity = 9.81, gait = false, rewind = 1, fallPenalty = 10 } = {}) {
+export function episode(R, brain, { stage = 0, seed = 1, target = sampleTarget(stage, seed), seconds = SECONDS, stats, alive = 1, pushScale = 1, gravity = 9.81, gait = false, rewind = 1, fallPenalty = 10, assist = 0 } = {}) {
   const REWIND = Math.max(1, Math.round(rewind / CTRL_DT));
   const env = makeEnv(R, { targetSpeed: target, gravity });
   env.freq = brainFreq(brain);
+  if (assist > 0) env.preStep = () => helpingHand(env, target, assist);
   const contacts = gait ? [[], []] : null;
   const rng = mulberry32(seed);
   const pushMax = STAGES[stage].push * pushScale;
