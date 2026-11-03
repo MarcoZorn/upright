@@ -4,7 +4,9 @@ A 3D human ragdoll that learns to stand, walk and run by neuroevolution, with no
 
 **[Open the viewer](https://marcozorn.github.io/upright/)** · [Devlog](docs/DEVLOG.md) · [Training plan](docs/PLAN.md)
 
-![The ragdoll holding its rest pose](docs/standing.png)
+![Run Y, generation 500: walking on its own, replayed in Chrome bit-identical to training](docs/walk.gif)
+
+*Generation 500, no assistance: 5.7 m in 10 s, upright the whole time. This clip was replayed in Chrome and matches the training run's trajectory hash (`ab1d9edf`) bit for bit.*
 
 Real rigid-body physics ([Rapier](https://rapier.rs)'s cross-platform deterministic WASM build). The exact same simulation code runs headless in Node for training and in the page for viewing. Nothing on the hot path depends on the JS engine's `Math` functions. The test suite checks that V8 (Node) and JavaScriptCore (Bun) produce the identical trajectory, bit for bit, so a brain behaves in your browser exactly as it did in training.
 
