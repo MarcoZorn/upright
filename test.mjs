@@ -97,7 +97,7 @@ if (!isMainThread) {
 
   await check('training checkpoint -> resume matches an uninterrupted run', () => {
     const run = (dir, ...a) => execFileSync('node', ['train.mjs', '--run', dir, '--quiet', '--workers', '2', '--pairs', '3',
-      '--evalSeeds', '1', '--noise', '1000000', '--saveEvery', '1000', '--publishEvery', '100000', ...a]);
+      '--evalSeeds', '1', '--noise', '1000000', '--saveEvery', '1000', '--publishEvery', '100000', '--brains', 'tmp/test-brains', ...a]);
     const tmp = 'tmp/test-runs';
     fs.rmSync(tmp, { recursive: true, force: true });
     run(`${tmp}/straight`, '--fresh', '--gens', '4');

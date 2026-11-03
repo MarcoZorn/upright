@@ -24,7 +24,7 @@ const cfg = {
   saveEvery: +(args.saveEvery ?? 10), publishEvery: +(args.publishEvery ?? 50), quiet: !!args.quiet,
   stage: args.stage !== undefined ? +args.stage : undefined,
   alive: +(args.alive ?? 1), pushScale: +(args.pushScale ?? 1), hidden: +(args.hidden ?? 512),
-  cpg: !!args.cpg, cpgSigma: +(args.cpgSigma ?? 0.1), freezeMlp: !!args.freezeMlp, gravity: +(args.gravity ?? 9.81), rewind: +(args.rewind ?? 1), fallPenalty: +(args.fallPenalty ?? 10), seconds: +(args.seconds ?? 10), assist: +(args.assist ?? 0), assistStart: +(args.assist ?? 0), sigmaMax: +(args.sigmaMax ?? 0.03),
+  cpg: !!args.cpg, cpgSigma: +(args.cpgSigma ?? 0.1), freezeMlp: !!args.freezeMlp, gravity: +(args.gravity ?? 9.81), rewind: +(args.rewind ?? 1), fallPenalty: +(args.fallPenalty ?? 10), seconds: +(args.seconds ?? 10), assist: +(args.assist ?? 0), assistStart: +(args.assist ?? 0), sigmaMax: +(args.sigmaMax ?? 0.03), brains: args.brains ?? 'brains',
   adaptSigma: args.adaptSigma === undefined ? true : args.adaptSigma !== 'false',
 };
 const dir = cfg.run, stateFile = path.join(dir, 'state.json'), logFile = path.join(dir, 'log.jsonl');
@@ -85,15 +85,15 @@ function saveBrain(file, meta, params = theta, nrm = currentNorm()) {
 
 // Milestones go to brains/ (committed, read by the viewer); every saveEvery gens go to runs/<name>/gens/ (ignored).
 function publish(meta, params, nrm) {
-  fs.mkdirSync('brains', { recursive: true });
+  fs.mkdirSync(cfg.brains, { recursive: true });
   const file = `${path.basename(dir)}-gen${String(st.gen).padStart(5, '0')}.json`;
   // Proof of walk: the hash of a plain 10 s replay at the stage's target speed. The viewer recomputes it.
   const target = STAGES[st.stage].targets[0][0];
-  saveBrain(path.join('brains', file), meta, params, nrm);
-  const b = deserialize(fs.readFileSync(path.join('brains', file), 'utf8'));
+  saveBrain(path.join(cfg.brains, file), meta, params, nrm);
+  const b = deserialize(fs.readFileSync(path.join(cfg.brains, file), 'utf8'));
   meta.proof = { target, gravity: cfg.gravity, hash10: rollout(R, b, { seconds: 10, targetSpeed: target, stopOnFall: false, gravity: cfg.gravity }).hash.toString(16) };
-  saveBrain(path.join('brains', file), meta, params, nrm);
-  const idxFile = 'brains/index.json';
+  saveBrain(path.join(cfg.brains, file), meta, params, nrm);
+  const idxFile = path.join(cfg.brains, 'index.json');
   const idx = fs.existsSync(idxFile) ? JSON.parse(fs.readFileSync(idxFile, 'utf8')) : [];
   idx.push({ run: path.basename(dir), file, ...meta });
   fs.writeFileSync(idxFile, JSON.stringify(idx, null, 1));
