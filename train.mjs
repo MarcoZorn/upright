@@ -24,7 +24,7 @@ const cfg = {
   saveEvery: +(args.saveEvery ?? 10), publishEvery: +(args.publishEvery ?? 50), quiet: !!args.quiet,
   stage: args.stage !== undefined ? +args.stage : undefined,
   alive: +(args.alive ?? 1), pushScale: +(args.pushScale ?? 1), hidden: +(args.hidden ?? 512),
-  cpg: !!args.cpg, cpgSigma: +(args.cpgSigma ?? 0.1), freezeMlp: !!args.freezeMlp, gravity: +(args.gravity ?? 9.81), rewind: +(args.rewind ?? 1), fallPenalty: +(args.fallPenalty ?? 10), seconds: +(args.seconds ?? 10),
+  cpg: !!args.cpg, cpgSigma: +(args.cpgSigma ?? 0.1), freezeMlp: !!args.freezeMlp, gravity: +(args.gravity ?? 9.81), rewind: +(args.rewind ?? 1), fallPenalty: +(args.fallPenalty ?? 10), seconds: +(args.seconds ?? 10), assist: +(args.assist ?? 0), assistStart: +(args.assist ?? 0), sigmaMax: +(args.sigmaMax ?? 0.03),
   adaptSigma: args.adaptSigma === undefined ? true : args.adaptSigma !== 'false',
 };
 const dir = cfg.run, stateFile = path.join(dir, 'state.json'), logFile = path.join(dir, 'log.jsonl');
@@ -140,15 +140,19 @@ while (!stopping && st.gen < endGen) {
   const jobs = [];
   for (let k = 0; k < cfg.pairs; k++) {
     const seed = hash(cfg.seed, st.gen, k);
-    jobs.push({ off: Math.floor(rng() * (cfg.noise - dim)), seed, stage: st.stage, target: sampleTarget(st.stage, seed), sigma: cfg.sigma, alive: cfg.alive, pushScale: cfg.pushScale, gravity: cfg.gravity, rewind: cfg.rewind, fallPenalty: cfg.fallPenalty, seconds: cfg.seconds });
+    jobs.push({ off: Math.floor(rng() * (cfg.noise - dim)), seed, stage: st.stage, target: sampleTarget(st.stage, seed), sigma: cfg.sigma, alive: cfg.alive, pushScale: cfg.pushScale, gravity: cfg.gravity, rewind: cfg.rewind, fallPenalty: cfg.fallPenalty, seconds: cfg.seconds, assist: cfg.assist });
   }
   const targets = [...new Set(stage.targets.map(([v]) => v))];
   for (const target of targets) for (let e = 0; e < cfg.evalSeeds; e++)
-    jobs.push({ eval: true, seed: hash(cfg.seed, st.gen, 1e6 + e), stage: st.stage, target, alive: cfg.alive, pushScale: cfg.pushScale, gravity: cfg.gravity, gait: true, rewind: cfg.rewind, fallPenalty: cfg.fallPenalty, seconds: cfg.seconds });
+    jobs.push({ eval: true, seed: hash(cfg.seed, st.gen, 1e6 + e), stage: st.stage, target, alive: cfg.alive, pushScale: cfg.pushScale, gravity: cfg.gravity, gait: true, rewind: cfg.rewind, fallPenalty: cfg.fallPenalty, seconds: cfg.seconds, assist: cfg.assist });
+  // with assist on, also measure the brain on its own (honest numbers)
+  if (cfg.assist > 0) for (let e = 0; e < 4; e++)
+    jobs.push({ eval: true, bare: true, seed: hash(cfg.seed, st.gen, 2e6 + e), stage: st.stage, target: targets[0], alive: cfg.alive, pushScale: cfg.pushScale, gravity: cfg.gravity, gait: true, rewind: cfg.rewind, fallPenalty: cfg.fallPenalty, seconds: cfg.seconds, assist: 0 });
 
   const res = await runJobs(jobs);
   const pairs = res.filter((r) => r.plus);
-  const evals = res.filter((r) => r.res).map((r) => r.res);
+  const evals = res.filter((r, i) => r.res && !jobs[i].bare).map((r) => r.res);
+  const bare = res.filter((r, i) => r.res && jobs[i].bare).map((r) => r.res);
   for (const p of pairs) mergeStats(st.stats, p.stats);
   const grad = esGradient(dim, noise, pairs.map((p, k) => ({ off: jobs[k].off, plus: p.plus.fitness, minus: p.minus.fitness })), cfg.sigma);
   for (let i = 0; i < dim; i++) grad[i] = scale[i] ? grad[i] / scale[i] : 0; // frozen blocks don't move
@@ -163,8 +167,9 @@ while (!stopping && st.gen < endGen) {
     upFrac: mean(evals.map((e) => e.upFrac)),
     popUp: mean(pairs.flatMap((p) => [p.plus.upFrac, p.minus.upFrac])), // do the perturbed siblings survive too?
     speed: Object.fromEntries(targets.map((t) => [t, mean(evals.filter((e) => e.target === t).map((e) => e.speed))])),
-    step: stepNorm, secs: (performance.now() - g0) / 1000, sigma: cfg.sigma,
+    step: stepNorm, secs: (performance.now() - g0) / 1000, sigma: cfg.sigma, assist: cfg.assist,
   };
+  if (bare.length) m.bare = { upFrac: +mean(bare.map((e) => e.upFrac)).toFixed(3), speed: +mean(bare.map((e) => e.speed)).toFixed(3) };
   // gait of the centre brain at the stage's main target speed
   const gaits = evals.filter((e) => e.target === targets[0] && e.gait).map((e) => e.gait);
   if (gaits.length) {
@@ -175,19 +180,30 @@ while (!stopping && st.gen < endGen) {
   }
   if (cpgDim) m.cpg = { freq: +cpgFreq(evaluated).toFixed(3), dphi: +cpgDphi(evaluated).toFixed(3) };
   fs.appendFileSync(logFile, JSON.stringify(m) + '\n');
-  log(`gen ${String(st.gen).padStart(5)} ${stage.name.padEnd(5)} fit ${m.fitness.toFixed(1).padStart(7)} pop ${m.popFitness.toFixed(1).padStart(7)} up ${(m.upFrac * 100).toFixed(0).padStart(3)}%/${(m.popUp * 100).toFixed(0).padStart(3)}% speed ${targets.map((t) => `${t}:${m.speed[t].toFixed(2)}`).join(' ')} |Δ| ${stepNorm.toFixed(3)} σ ${cfg.sigma.toFixed(4)}${m.gait ? ` steps ${m.gait.steps.toFixed(1)} duty ${m.gait.duty.toFixed(2)}` : ''}${m.cpg ? ` f ${m.cpg.freq} Δφ ${m.cpg.dphi}` : ''} ${m.secs.toFixed(1)}s`);
+  log(`gen ${String(st.gen).padStart(5)} ${stage.name.padEnd(5)} fit ${m.fitness.toFixed(1).padStart(7)} pop ${m.popFitness.toFixed(1).padStart(7)} up ${(m.upFrac * 100).toFixed(0).padStart(3)}%/${(m.popUp * 100).toFixed(0).padStart(3)}% speed ${targets.map((t) => `${t}:${m.speed[t].toFixed(2)}`).join(' ')} |Δ| ${stepNorm.toFixed(3)} σ ${cfg.sigma.toFixed(4)}${m.gait ? ` steps ${m.gait.steps.toFixed(1)} duty ${m.gait.duty.toFixed(2)}` : ''}${m.cpg ? ` f ${m.cpg.freq} Δφ ${m.cpg.dphi}` : ''}${cfg.assist ? ` assist ${cfg.assist.toFixed(3)} bare ${(m.bare.upFrac * 100).toFixed(0)}%/${m.bare.speed.toFixed(2)}` : ''} ${m.secs.toFixed(1)}s`);
+  // anneal the helping hand once the assisted brain copes: upright and at 60% of the target speed
+  if (cfg.assist > 0 && m.upFrac >= 0.9 && m.speed[targets[0]] >= 0.6 * targets[0]) {
+    cfg.assist *= 0.9;
+    if (cfg.assist < 0.05) cfg.assist = 0;
+  }
   // Survival-targeted sigma (after stand): keep 40-80% of the perturbed siblings upright, the band where
   // perturbations are risky but informative. Below it ES ranks fallers; above it, it explores too little.
   if (cfg.adaptSigma && st.stage > 0) {
     const k = m.popUp < 0.4 ? 0.85 : m.popUp > 0.8 ? 1.15 : 1;
-    cfg.sigma *= k; cfg.cpgSigma *= k;
+    const kk = Math.min(k, cfg.sigmaMax / cfg.sigma); // capped: with the helping hand nearly every sibling survives
+    cfg.sigma *= kk; cfg.cpgSigma *= kk;
     setScale();
   }
 
   const meta = { gen: st.gen, stage: stage.name, fitness: +m.fitness.toFixed(1), upFrac: +m.upFrac.toFixed(3), speed: m.speed };
-  const graduated = stage.graduate(m) && st.stage < STAGES.length - 1;
+  const graduated = stage.graduate(m) && !m.assist && st.stage < STAGES.length - 1;
   st.gen++;
-  if (graduated) { publish({ ...meta, graduated: true }, evaluated, n); log(`*** graduated from ${stage.name} ***`); st.stage++; }
+  if (graduated) {
+    publish({ ...meta, graduated: true }, evaluated, n);
+    log(`*** graduated from ${stage.name} ***`);
+    st.stage++;
+    cfg.assist = cfg.assistStart; // each new stage starts with the helping hand again
+  }
   else if (st.gen % cfg.publishEvery === 1) publish(meta, evaluated, n);
   if (st.gen % cfg.saveEvery === 0) { saveBrain(path.join(dir, 'gens', `gen${String(meta.gen).padStart(5, '0')}.json`), meta, evaluated, n); checkpoint(); }
 }
