@@ -152,3 +152,25 @@ Two arms, two gaits. Over 4 seeds, from `src/gait.js`:
 
 - **X's learned gait.** Starting from Δφ = π (alternating), the CPG arm drifted its inter-leg phase steadily down (π → 2.7 → 1.7 → 1.1 → 0.57 over ~250 gens). The result is a two-footed shuffle-hop, on Earth. The CPG didn't force that: the shuffle stage rewards small, safe forward progress, and moving both feet together turned out to be a safe way to get it.
 - **Not walking yet in the human sense.** Both cadences are fast micro-steps; a human takes about 2 steps per second. Neither brain changes speed with the target speed yet; that's what the walk stage is now training.
+
+## 2026-11-03 (~04:00): Y passes the walk stage; first gravity smoke test
+
+**Y passed the walk stage at gen 714 with zero assist** (bare evals ≥ 0.8 m/s at the 1 m/s target, ≥ 90% upright). Gait of that brain over 4 seeds:
+
+| target | upright | speed | duty | flight | cadence | inter-leg phase |
+|---|---|---|---|---|---|---|
+| 0 | 100% | 0.57 | 0.68 | 0.25 | 3.4 | 1.3 |
+| 0.4 | 100% | 0.66 | 0.63 | 0.28 | 4.1 | 1.2 |
+| 1 | 100% | 0.81 | 0.56 | 0.32 | 4.7 | 1.5 |
+| 1.5 | 100% | 0.92 | 0.51 | 0.35 | 5.3 | 2.1 |
+
+- **Human-like trends:** speed follows the target, and as it speeds up the duty factor falls and the cadence rises, the same direction as in human gait.
+- **Not human yet:**
+  - It bounces, with a flight phase of 25% even at target 0.
+  - It can't hold still: it does 0.57 m/s when asked to stand.
+  - It doesn't reach 1 m/s, so the pre-registration's Earth gate (1 m/s on 8/10 seeds) isn't met.
+- **Replay:** in Chrome, 8.1 m in 10 s, and the trajectory hash `5d20c344` matches training. That's the clip in the README.
+
+**Gravity smoke test (pipeline check, not a result):** the same Earth-trained brain, run at g = 3.71 and 1.62, stays up only 14–30% of the time on Mars and 8% on the Moon. Its motors are tuned to push against 9.81, so in low gravity it launches itself. That's expected, and it's why the pre-registration trains from scratch at each gravity.
+
+**Reproducibility run Z started:** seed 2, from scratch, helping hand on from generation 0. Y's result came from a single run that forked from W at gen 310; Z checks whether the recipe works without that history.
