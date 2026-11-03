@@ -111,3 +111,29 @@ All runs used 64×64 nets, 7–11 workers each and honest metrics.
 **What I think is going on.** Near zero amplitude, the CPG landscape is flat: a small oscillation just shakes the body in place and earns nothing. The amplitude where a foot actually leaves the ground is a cliff (it falls) rather than a slope. The adaptive σ also shrinks the noise whenever siblings fall, which is the opposite of what an open-loop oscillator needs.
 
 **The bigger mistake.** I kept killing runs after 10–20 minutes. ES needs on the order of 10⁵ episodes for MuJoCo's humanoid; the first main run stopped at gen 24, which is ~12k episodes. So the plain setup has never had a fair budget. For the rest of the night, two long runs (W: plain 64×64; X: 64×64 + learnable CPG), 256 pairs, untouched.
+
+## 2026-11-03 (early morning): the helping hand gets it stepping
+
+**The control arm stayed stuck.** W (plain 64×64 MLP) never took a step in 450 generations, about 230k episodes. Its fitness plateaued at ~420 (standing earns 450 at best). Among 48 perturbed siblings of its gen-299 brain, none of the upright ones travelled more than 0.18 m, so the only gradient was "lean a little further forward". Stepping simply isn't in the neighbourhood ES samples.
+
+**Helping hand** (`--assist`, after Yu, Turk & Liu 2018):
+- upright springs on the torso and pelvis
+- body-weight support of up to 40%
+- a gentle pull towards the target speed
+
+All of it is scaled by `assist`. It decays ×0.9 every generation in which the assisted brain stays up and reaches 60% of the target speed, restarts at each new stage, and **a stage only graduates at assist = 0**. Every generation also runs 4 unassisted ("bare") evals, so the log always shows what the brain can do alone.
+
+Two traps on the way:
+1. The help forces were first held for a whole brain step (4 physics steps). The explicit damping term went numerically unstable and the body launched itself at 0.5 s; it now recomputes every physics substep.
+2. With the help on, nearly every sibling survives, so survival-targeted σ climbed to 0.07 and the population started flailing. σ is now capped at 0.03.
+
+**Result so far (run Y, started from W's gen-310 brain):**
+
+| gen | assist | steps / episode | duty | speed with help | bare: upright / speed |
+|---|---|---|---|---|---|
+| 310 | 1.00 | 0 | 1.00 | 0.04 | 100% / 0.01 |
+| 318 | 1.00 | 12 | 0.54 | 0.06 | 100% / 0.01 |
+| 333 | 0.48 | 68 | 0.53 | 0.46 | 17% / 0.14 |
+| 408 | 0.11 | 36 | 0.80 | 0.27 | 60% / 0.12 |
+
+The footsteps appeared within 8 generations of switching the help on, after 300 generations without it.
