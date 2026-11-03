@@ -1,40 +1,45 @@
-// ES vs NEAT on the walk task: forward speed at a 1 m/s target against episodes spent. Writes docs/es-vs-neat.svg.
-//   node compare.mjs [runs/main/log.jsonl] [runs/neat-walk/log.jsonl]
+// Training progress of several runs on one chart: unassisted forward speed at the stage's main target
+// against episodes simulated. Writes docs/progress.svg.
+//   node compare.mjs runs/W:no-assist runs/Y:assist runs/X:assist+cpg
 import fs from 'node:fs';
 
-const [esFile = 'runs/main/log.jsonl', neatFile = 'runs/neat-walk/log.jsonl'] = process.argv.slice(2);
-const read = (f) => (fs.existsSync(f) ? fs.readFileSync(f, 'utf8').trim().split('\n').map((l) => JSON.parse(l)) : []);
+const COLORS = ['#8d877c', '#f2a65a', '#7fb7a4', '#c97b9a', '#9aa7e0'];
+const series = process.argv.slice(2).map((arg, i) => {
+  const [dir, label = dir] = arg.split(':');
+  let episodes = 0;
+  const pts = [], marks = [];
+  let prevStage;
+  for (const l of fs.readFileSync(`${dir}/log.jsonl`, 'utf8').trim().split('\n').map((x) => JSON.parse(x))) {
+    const targets = Object.keys(l.speed);
+    episodes += 2 * 256 + 8 * targets.length + (l.bare ? 4 : 0);
+    const main = targets.map(Number).sort((a, b) => b - a)[0];
+    // with the helping hand on, plot the bare (unassisted) evals; otherwise the normal evals are bare
+    const speed = l.bare ? l.bare.speed : l.speed[String(main)];
+    pts.push([episodes, speed, main]);
+    if (l.stage !== prevStage) { marks.push([episodes, l.stage]); prevStage = l.stage; }
+  }
+  return { label, pts, marks, color: COLORS[i % COLORS.length] };
+});
 
-// ES: count every episode from the start (stand stage included), plot only walk-stage evals of the centre brain.
-let used = 0;
-const es = [];
-for (const l of read(esFile)) {
-  used += 2 * 256 + 8 * Object.keys(l.speed).length;
-  if (l.speed['1'] !== undefined) es.push([used, l.speed['1']]);
-}
-// NEAT: best genome of each generation (an optimistic measure: best of 256 on 2 episodes).
-const neat = read(neatFile).map((l) => [l.episodes, l.speed ?? 0]);
-
-const W = 720, H = 360, L = 60, B = 44, T = 40, Rm = 20;
-const xMax = Math.max(1, ...es.map((p) => p[0]), ...neat.map((p) => p[0]));
-const yMax = Math.max(1.2, ...es.map((p) => p[1]), ...neat.map((p) => p[1]));
-const yMin = Math.min(0, ...es.map((p) => p[1]), ...neat.map((p) => p[1]));
+const W = 760, H = 380, L = 56, B = 46, T = 44, Rm = 24;
+const xMax = Math.max(...series.flatMap((s) => s.pts.map((p) => p[0])));
+const yMax = 1.1, yMin = -0.1;
 const x = (v) => L + (v / xMax) * (W - L - Rm), y = (v) => H - B - ((v - yMin) / (yMax - yMin)) * (H - B - T);
-const line = (pts, color) => pts.length ? `<polyline fill="none" stroke="${color}" stroke-width="2" points="${pts.map(([a, b]) => `${x(a).toFixed(1)},${y(b).toFixed(1)}`).join(' ')}"/>` : '';
-const ticks = [0, 0.25, 0.5, 0.75, 1].map((f) => f * xMax);
+// light smoothing (10-gen running mean) so the trend is readable; raw values are in the logs
+const smooth = (pts) => pts.map((p, i) => {
+  const w = pts.slice(Math.max(0, i - 9), i + 1);
+  return [p[0], w.reduce((s, q) => s + q[1], 0) / w.length];
+});
+const line = (s) => `<polyline fill="none" stroke="${s.color}" stroke-width="2" points="${smooth(s.pts).map(([a, b]) => `${x(a).toFixed(1)},${y(b).toFixed(1)}`).join(' ')}"/>`;
+const fmt = (t) => (t >= 1e6 ? (t / 1e6).toFixed(1) + 'M' : Math.round(t / 1e3) + 'k');
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" font-family="ui-monospace,Menlo,monospace" font-size="12">
 <rect width="${W}" height="${H}" fill="#14130f"/>
-<text x="${L}" y="24" fill="#e9e4da" font-size="14">forward speed with a 1 m/s target, vs episodes simulated</text>
-<line x1="${L}" x2="${W - Rm}" y1="${y(1)}" y2="${y(1)}" stroke="#ffffff30" stroke-dasharray="4 4"/>
-<text x="${W - Rm - 4}" y="${y(1) - 6}" fill="#8d877c" text-anchor="end">target</text>
-<line x1="${L}" x2="${W - Rm}" y1="${y(0)}" y2="${y(0)}" stroke="#ffffff20"/>
-${ticks.map((t) => `<text x="${x(t)}" y="${H - B + 18}" fill="#8d877c" text-anchor="middle">${t >= 1e6 ? (t / 1e6).toFixed(1) + 'M' : Math.round(t / 1e3) + 'k'}</text>`).join('')}
-${[yMin, 0.5 * (yMin + yMax), yMax].map((v) => `<text x="${L - 8}" y="${y(v) + 4}" fill="#8d877c" text-anchor="end">${v.toFixed(1)}</text>`).join('')}
-<text x="${(L + W) / 2}" y="${H - 8}" fill="#8d877c" text-anchor="middle">episodes (10 s each)</text>
-${line(es, '#f2a65a')}${line(neat, '#7fb7a4')}
-<text x="${L + 10}" y="${T + 14}" fill="#f2a65a">ES, 316k-param MLP (centre brain, 8 eval episodes)</text>
-<text x="${L + 10}" y="${T + 30}" fill="#7fb7a4">NEAT (best genome of the generation)</text>
+<text x="${L}" y="24" fill="#e9e4da" font-size="14">unassisted forward speed vs episodes simulated (10-gen mean)</text>
+${[0, 0.4, 1].map((v) => `<line x1="${L}" x2="${W - Rm}" y1="${y(v)}" y2="${y(v)}" stroke="#ffffff${v ? '22' : '33'}" stroke-dasharray="${v ? '4 4' : ''}"/><text x="${L - 8}" y="${y(v) + 4}" fill="#8d877c" text-anchor="end">${v}</text>`).join('')}
+${[0, 0.25, 0.5, 0.75, 1].map((f) => `<text x="${x(f * xMax)}" y="${H - B + 18}" fill="#8d877c" text-anchor="middle">${fmt(f * xMax)}</text>`).join('')}
+<text x="${(L + W) / 2}" y="${H - 8}" fill="#8d877c" text-anchor="middle">episodes (10 s each) · dashed: shuffle 0.4 m/s and walk 1 m/s targets</text>
+${series.map(line).join('')}
+${series.map((s, i) => `<text x="${L + 10}" y="${T + 14 + 16 * i}" fill="${s.color}">${s.label}</text>`).join('')}
 </svg>`;
-fs.mkdirSync('docs', { recursive: true });
-fs.writeFileSync('docs/es-vs-neat.svg', svg);
-console.log(`ES ${es.length} points, NEAT ${neat.length} points -> docs/es-vs-neat.svg`);
+fs.writeFileSync('docs/progress.svg', svg);
+console.log(series.map((s) => `${s.label}: ${s.pts.length} gens`).join(', '), '-> docs/progress.svg');
