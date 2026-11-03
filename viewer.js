@@ -272,4 +272,15 @@ async function record({ seconds = 8, every = 1, quality = 0.85 } = {}) {
   }
   return frames;
 }
-window.upright = { get env() { return env; }, reset, record, setTarget, pickBrain, scene, camera, controls, renderer, $ };
+// Same capture, but streamed to tools/framesink.mjs so frames never pass through anything else.
+async function recordTo(url, { seconds = 8, quality = 0.9 } = {}) {
+  paused = true;
+  for (let f = 0; f < seconds * 30; f++) {
+    tick();
+    draw();
+    const blob = await new Promise((r) => renderer.domElement.toBlob(r, 'image/jpeg', quality));
+    await fetch(`${url}/frame/${f}`, { method: 'POST', body: blob });
+  }
+  return seconds * 30;
+}
+window.upright = { get env() { return env; }, reset, record, recordTo, setTarget, pickBrain, scene, camera, controls, renderer, $ };
