@@ -137,3 +137,18 @@ Two traps on the way:
 | 408 | 0.11 | 36 | 0.80 | 0.27 | 60% / 0.12 |
 
 The footsteps appeared within 8 generations of switching the help on, after 300 generations without it.
+
+**By ~02:30 both arms walk on their own.**
+- **Y (plain 64×64):** passed shuffle at gen 465 with zero assist. In the walk stage, at assist 0.1, its bare evals are 100% upright at 0.50 m/s.
+- **Replay check:** the gen-500 brain (`brains/Y-gen00501.json`), replayed in Chrome, covers 5.7 m in 10 s, and its trajectory hash `ab1d9edf` matches the one training stored. That replay is the clip at the top of the README.
+- **X (64×64 + learnable CPG):** passed shuffle at gen 423.
+
+Two arms, two gaits. Over 4 seeds, from `src/gait.js`:
+
+| brain | Δφ (CPG param) | measured inter-leg phase | duty | flight | cadence (touchdowns/s) | speed |
+|---|---|---|---|---|---|---|
+| X gen 423 | 0.57 rad | ≈ 0.97 rad (nearly in phase) | 0.78 | 0.16 | 5.4 | 0.31 m/s |
+| Y gen 500 | (none) | ≈ 2.2 rad (closer to alternating) | 0.79 | 0.14 | 4.6 | 0.47 m/s |
+
+- **X's learned gait.** Starting from Δφ = π (alternating), the CPG arm drifted its inter-leg phase steadily down (π → 2.7 → 1.7 → 1.1 → 0.57 over ~250 gens). The result is a two-footed shuffle-hop, on Earth. The CPG didn't force that: the shuffle stage rewards small, safe forward progress, and moving both feet together turned out to be a safe way to get it.
+- **Not walking yet in the human sense.** Both cadences are fast micro-steps; a human takes about 2 steps per second. Neither brain changes speed with the target speed yet; that's what the walk stage is now training.
