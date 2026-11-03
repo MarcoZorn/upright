@@ -136,6 +136,9 @@ while (!stopping && st.gen < endGen) {
   const g0 = performance.now(), stage = STAGES[st.stage];
   const n = currentNorm();
   norm.set(n.mean, 0); norm.set(n.std, OBS_SIZE);
+  // No helping hand while learning to stand: standing is exactly what the springs would replace
+  // (run Z, first attempt: with help from gen 0 its bare evals were 4-9% upright after 200 gens).
+  if (st.stage === 0) cfg.assist = 0;
   const rng = mulberry32(hash(cfg.seed, st.gen));
   const jobs = [];
   for (let k = 0; k < cfg.pairs; k++) {
@@ -202,7 +205,7 @@ while (!stopping && st.gen < endGen) {
     publish({ ...meta, graduated: true }, evaluated, n);
     log(`*** graduated from ${stage.name} ***`);
     st.stage++;
-    cfg.assist = cfg.assistStart; // each new stage starts with the helping hand again
+    cfg.assist = cfg.assistStart; // each new stage starts with the helping hand again (stand never has it)
   }
   else if (st.gen % cfg.publishEvery === 1) publish(meta, evaluated, n);
   if (st.gen % cfg.saveEvery === 0) { saveBrain(path.join(dir, 'gens', `gen${String(meta.gen).padStart(5, '0')}.json`), meta, evaluated, n); checkpoint(); }
