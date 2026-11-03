@@ -174,3 +174,10 @@ Two arms, two gaits. Over 4 seeds, from `src/gait.js`:
 **Gravity smoke test (pipeline check, not a result):** the same Earth-trained brain, run at g = 3.71 and 1.62, stays up only 14–30% of the time on Mars and 8% on the Moon. Its motors are tuned to push against 9.81, so in low gravity it launches itself. That's expected, and it's why the pre-registration trains from scratch at each gravity.
 
 **Reproducibility run Z started:** seed 2, from scratch, helping hand on from generation 0. Y's result came from a single run that forked from W at gen 310; Z checks whether the recipe works without that history.
+
+**Stopped here (morning of 2026-11-03).**
+- **Y (jog stage), at gen 1496, no assist:** at the 2 m/s target it does 1.33 m/s, upright 79% of the time, duty factor 0.48. The help has fully decayed, but it hasn't passed the jog stage yet.
+- **Z (seed-2 reproduction, help only after stand):** restarted, only 15 gens in, still in the stand stage. The first Z attempt (help from gen 0) failed and its log is kept as `runs/Z/log-attempt1.jsonl`.
+- **Resume:**
+  - `node train.mjs --run runs/Y --workers 10`
+  - `node train.mjs --run runs/Z --workers 11`
