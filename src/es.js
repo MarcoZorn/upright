@@ -1,6 +1,9 @@
 // OpenAI-style evolution strategies (Salimans et al. 2017), pure functions, no physics.
 import { mulberry32, gaussian } from './mlp.js';
 
+// FNV-style hash of integers: per-generation and per-pair seeds in train.mjs (and the ghosts in the viewer).
+export const seedHash = (...xs) => xs.reduce((h, x) => Math.imul(h ^ x, 0x01000193) >>> 0, 0x811c9dc5);
+
 // Shared noise table: a perturbation is an offset into it, so workers exchange integers, not 1.2 MB vectors.
 export function makeNoise(size, seed, buffer = new ArrayBuffer(size * 4)) {
   const noise = new Float32Array(buffer);

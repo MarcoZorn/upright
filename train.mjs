@@ -7,7 +7,7 @@ import path from 'node:path';
 try { os.setPriority(19); } catch { /* lowest priority: never get in the way of interactive work */ }
 import { DOFS, OBS_SIZE } from './src/body.js';
 import { createMLP, mulberry32, serialize, toB64, fromB64 } from './src/mlp.js';
-import { makeNoise, esGradient, adamStep, newStats, mergeStats, statsToNorm } from './src/es.js';
+import { makeNoise, esGradient, adamStep, newStats, mergeStats, statsToNorm, seedHash } from './src/es.js';
 import { STAGES, sampleTarget } from './src/task.js';
 import { CPG_SIZE, cpgFreq, cpgDphi } from './src/cpg.js';
 import { rollout } from './src/sim.js';
@@ -130,7 +130,7 @@ const stop = () => { if (stopping) process.exit(1); stopping = true; log('stoppi
 process.on('SIGINT', stop);
 process.on('SIGTERM', stop);
 
-const hash = (...xs) => xs.reduce((h, x) => Math.imul(h ^ x, 0x01000193) >>> 0, 0x811c9dc5);
+const hash = seedHash;
 const endGen = st.gen + cfg.gens;
 while (!stopping && st.gen < endGen) {
   const g0 = performance.now(), stage = STAGES[st.stage];
@@ -170,7 +170,7 @@ while (!stopping && st.gen < endGen) {
     upFrac: mean(evals.map((e) => e.upFrac)),
     popUp: mean(pairs.flatMap((p) => [p.plus.upFrac, p.minus.upFrac])), // do the perturbed siblings survive too?
     speed: Object.fromEntries(targets.map((t) => [t, mean(evals.filter((e) => e.target === t).map((e) => e.speed))])),
-    step: stepNorm, secs: (performance.now() - g0) / 1000, sigma: cfg.sigma, assist: cfg.assist,
+    step: stepNorm, secs: (performance.now() - g0) / 1000, sigma: cfg.sigma, cpgSigma: cfg.cpgSigma, assist: cfg.assist,
   };
   if (bare.length) m.bare = { upFrac: +mean(bare.map((e) => e.upFrac)).toFixed(3), speed: +mean(bare.map((e) => e.speed)).toFixed(3) };
   // gait of the centre brain at the stage's main target speed
@@ -198,7 +198,8 @@ while (!stopping && st.gen < endGen) {
     setScale();
   }
 
-  const meta = { gen: st.gen, stage: stage.name, fitness: +m.fitness.toFixed(1), upFrac: +m.upFrac.toFixed(3), speed: m.speed };
+  const meta = { gen: st.gen, stage: stage.name, fitness: +m.fitness.toFixed(1), upFrac: +m.upFrac.toFixed(3), speed: m.speed,
+    es: { seed: cfg.seed, noise: cfg.noise, sigma: m.sigma, cpgSigma: m.cpgSigma, pairs: cfg.pairs } };
   const graduated = stage.graduate(m) && !m.assist && st.stage < STAGES.length - 1;
   st.gen++;
   if (graduated) {
