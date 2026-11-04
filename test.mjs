@@ -142,6 +142,24 @@ if (!isMainThread) {
     }
   });
 
+  await check('the viewer rebuilds exactly the siblings a training worker evaluated', async () => {
+    const { siblings } = await import('./src/ghosts.js');
+    const { seedHash } = await import('./src/es.js');
+    const { cpgBrain } = await import('./src/sim.js');
+    const { CPG_SIZE } = await import('./src/cpg.js');
+    const layers = [LAYERS[0], 8, LAYERS[3]];
+    const b = cpgBrain(layers);
+    for (let i = 0; i < b.full.length; i++) b.full[i] = Math.sin(i) * 0.1;
+    const run = { seed: 3, noise: 200_000, sigma: 0.02, cpgSigma: 0.07 };
+    const [first] = siblings(b, 5, run, 1);
+    // what train.mjs + worker.mjs do for pair 0 of generation 5
+    const noise = makeNoise(run.noise, 12345), off = Math.floor(mulberry32(seedHash(run.seed, 5))() * (run.noise - b.full.length));
+    const scale = new Float32Array(b.full.length).fill(run.cpgSigma / run.sigma, 0, CPG_SIZE).fill(1, CPG_SIZE);
+    const w = new Float32Array(b.full.length);
+    for (let i = 0; i < w.length; i++) w[i] = b.full[i] + 1 * run.sigma * scale[i] * noise[off + i];
+    assert.deepEqual(first.brain.full, w);
+  });
+
   await check('a second JS engine (Bun / JavaScriptCore) reproduces the same trajectory and fitness', () => {
     let bun;
     try { bun = execFileSync('which', ['bun']).toString().trim(); } catch { console.log('    (bun not installed, skipped)'); return; }
