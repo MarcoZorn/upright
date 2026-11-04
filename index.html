@@ -45,6 +45,10 @@
   #chart { width: 100%; height: 120px; display: block; }
   a { color: var(--accent); }
   kbd { border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; }
+  #about { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); color: var(--dim); }
+  #about summary { cursor: pointer; color: var(--ink); }
+  #about p { margin: 6px 0; font-size: 12px; }
+  #about b { color: var(--ink); font-weight: normal; }
 </style>
 </head>
 <body>
@@ -86,6 +90,13 @@
   <input id="file" type="file" accept=".json" hidden>
 
   <div id="stats"></div>
+  <details id="about">
+    <summary>what am I looking at?</summary>
+    <p>A 15-part ragdoll with 30 motors, taught by evolution strategies with no motion capture. <b>generation</b> picks a saved brain from training; <b>target speed</b> is what it's asked to do.</p>
+    <p><b>replay</b>: the page reruns the brain from scratch, and ✓ means your browser produced the exact trajectory the training machine did. Pushing, kicking, or changing speed or gravity voids the check.</p>
+    <p><b>ghosts</b> (<kbd>g</kbd>): the 16 perturbed copies evolution tried around this generation, rebuilt bit-exactly. Fallen ones fade; the best four are orange.</p>
+    <p><a href="https://github.com/MarcoZorn/upright">source, devlog and pre-registration</a></p>
+  </details>
 </div>
 <div id="fall">fell</div>
 <div id="chartBox"><div id="chartTitle">training: eval fitness (line), upright % (shade)</div><canvas id="chart" width="640" height="240"></canvas></div>
