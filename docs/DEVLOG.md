@@ -200,3 +200,20 @@ So "help, then anneal it away" isn't a one-seed fluke, and starting the help ear
 - Clip: `docs/ghosts.gif`.
 
 ![progress](progress.svg)
+
+**Y's "run" is a bound.** Y's gen-1869 brain, measured without pushes:
+
+| target | upright | speed | duty | flight | cadence | inter-leg phase |
+|---|---|---|---|---|---|---|
+| 0 | 7% | (falls) | | | | |
+| 1 | 100% | 1.16 | 0.55 | 0.37 | 4.4 | 0.64 |
+| 1.5 | 100% | 1.26 | 0.50 | 0.40 | 4.8 | 0.96 |
+| 2 | 100% | 1.44 | 0.44 | 0.45 | 5.3 | 0.58 |
+| 2.5 | 100% | 1.58 | 0.43 | 0.46 | 5.5 | 0.60 |
+
+- **It runs by the duty-factor definition:** duty < 0.5 and 45% flight at 2 m/s. In the jog stage it's ~78% upright only because the pushes are back on.
+- **It's a two-footed bound, not a human run.** The inter-leg phase is ≈ 0.6 rad, so both legs move nearly together.
+- **The CPG arm X found the same thing on its own:** Δφ drifted from π to 0.16. So on Earth, with this body and reward, speed is reached by hopping, with or without an oscillator.
+- **It forgot how to stand.** At target 0 it falls.
+
+**What this means for the pre-registration.** The Moon hypothesis (H2: skip/hop at low g) now needs a stronger control than planned. If the Earth baseline already hops at speed, "it hops on the Moon" says nothing about gravity. Only a *change* in Δφ or skip rate versus Earth, at matched Froude number, would. I'm adding that comparison as an amendment rather than editing PREREG.md, so the original timestamp still means something.
