@@ -181,3 +181,22 @@ Two arms, two gaits. Over 4 seeds, from `src/gait.js`:
 - **Resume:**
   - `node train.mjs --run runs/Y --workers 10`
   - `node train.mjs --run runs/Z --workers 11`
+
+## 2026-11-04: it reproduces; the ES population, visible
+
+**Seed-2 reproduction (run Z).** Fresh start, helping hand from the shuffle stage on, no help in stand.
+- Passed stand at gen ~43 and shuffle at gen ~184, both with zero assist.
+- At gen 232 in the walk stage, at assist 0.13, its bare evals are 100% upright at 0.35 m/s.
+- Y needed 310 unassisted gens (as W) + 155 more to pass shuffle. Z did it in 184 from scratch.
+
+So "help, then anneal it away" isn't a one-seed fluke, and starting the help early is what costs nothing. Two seeds still isn't a result with error bars; the pre-registration's Earth gate asks for 8/10.
+
+**Y in the jog stage** has plateaued around 1.35 m/s at the 2 m/s target, ~75% upright, duty ≈ 0.48. It needs 1.6 m/s and 90% to graduate.
+
+**Ghost siblings in the viewer** (press `g`). For a published brain, the page regenerates the run's 16M-entry noise table (Irwin-Hall, seed 12345) and the generation's offsets (`seedHash(seed, gen)`), then builds the 16 perturbed brains ES evaluated around it.
+- `test.mjs` checks they're bit-identical to what a training worker computes, including the float32 rounding of the CPG noise scale.
+- They walk next to the solid centre brain. Fallen ones fade; the four furthest upright are orange.
+- The first version ranked by raw distance, which coloured a sibling that had *dived* forward as the best. That's the same bug as the reward's lunge problem, now fixed in the picture too.
+- Clip: `docs/ghosts.gif`.
+
+![progress](progress.svg)

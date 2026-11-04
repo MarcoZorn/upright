@@ -1602,5 +1602,165 @@
    "gravity": 9.81,
    "hash10": "d5fed672"
   }
+ },
+ {
+  "run": "Y",
+  "file": "Y-gen01551.json",
+  "gen": 1550,
+  "stage": "jog",
+  "fitness": 459.3,
+  "upFrac": 0.818,
+  "speed": {
+   "0": 0.5379938621161928,
+   "1": 1.1239691734313992,
+   "2": 1.3640190005302462
+  },
+  "proof": {
+   "target": 2,
+   "gravity": 9.81,
+   "hash10": "d3d1ae82"
+  }
+ },
+ {
+  "run": "Z",
+  "file": "Z-gen00101.json",
+  "gen": 100,
+  "stage": "shuffle",
+  "fitness": 376.3,
+  "upFrac": 0.987,
+  "speed": {
+   "0": 0.09133204594254517,
+   "0.4": 0.17053539522932612
+  },
+  "proof": {
+   "target": 0.4,
+   "gravity": 9.81,
+   "hash10": "a4bfde36"
+  }
+ },
+ {
+  "run": "Y",
+  "file": "Y-gen01601.json",
+  "gen": 1600,
+  "stage": "jog",
+  "fitness": 460.5,
+  "upFrac": 0.748,
+  "speed": {
+   "0": 0.5530572791621461,
+   "1": 1.0878737807273893,
+   "2": 1.3061328805011283
+  },
+  "proof": {
+   "target": 2,
+   "gravity": 9.81,
+   "hash10": "465e0600"
+  }
+ },
+ {
+  "run": "Z",
+  "file": "Z-gen00151.json",
+  "gen": 150,
+  "stage": "shuffle",
+  "fitness": 460.7,
+  "upFrac": 1,
+  "speed": {
+   "0": 0.22332008779048973,
+   "0.4": 0.26018542349338597
+  },
+  "proof": {
+   "target": 0.4,
+   "gravity": 9.81,
+   "hash10": "80ec7781"
+  }
+ },
+ {
+  "run": "Z",
+  "file": "Z-gen00178.json",
+  "gen": 177,
+  "stage": "shuffle",
+  "fitness": 481,
+  "upFrac": 1,
+  "speed": {
+   "0": 0.3101775407791146,
+   "0.4": 0.30877351760864336
+  },
+  "graduated": true,
+  "proof": {
+   "target": 0.4,
+   "gravity": 9.81,
+   "hash10": "df2220c5"
+  }
+ },
+ {
+  "run": "Y",
+  "file": "Y-gen01651.json",
+  "gen": 1650,
+  "stage": "jog",
+  "fitness": 451.8,
+  "upFrac": 0.731,
+  "speed": {
+   "0": 0.4688863141058721,
+   "1": 1.1265752777798512,
+   "2": 1.40572228431702
+  },
+  "proof": {
+   "target": 2,
+   "gravity": 9.81,
+   "hash10": "5a84a7b5"
+  }
+ },
+ {
+  "run": "Z",
+  "file": "Z-gen00201.json",
+  "gen": 200,
+  "stage": "walk",
+  "fitness": 580.1,
+  "upFrac": 1,
+  "speed": {
+   "0": 0.2840035945177085,
+   "1": 0.6062217056751267,
+   "0.4": 0.40906334221363166
+  },
+  "proof": {
+   "target": 1,
+   "gravity": 9.81,
+   "hash10": "a0b0b0a6"
+  }
+ },
+ {
+  "run": "Y",
+  "file": "Y-gen01701.json",
+  "gen": 1700,
+  "stage": "jog",
+  "fitness": 467.7,
+  "upFrac": 0.802,
+  "speed": {
+   "0": 0.7755343862067433,
+   "1": 1.1344320416450528,
+   "2": 1.372091674804691
+  },
+  "proof": {
+   "target": 2,
+   "gravity": 9.81,
+   "hash10": "358064b7"
+  }
+ },
+ {
+  "run": "Z",
+  "file": "Z-gen00251.json",
+  "gen": 250,
+  "stage": "walk",
+  "fitness": 563.2,
+  "upFrac": 1,
+  "speed": {
+   "0": 0.5112646162509931,
+   "1": 0.598792058229448,
+   "0.4": 0.5405020475387586
+  },
+  "proof": {
+   "target": 1,
+   "gravity": 9.81,
+   "hash10": "4ab0552f"
+  }
  }
 ]
