@@ -114,14 +114,14 @@ function prepareGhosts() {
 }
 
 // ---------- sim ----------
-let env, brain, brainName, hash, upTime, wasDown, contacts, acc = 0, paused = false, follow = true, tampered = false;
+let env, brain, brainName, hash, upTime, wasDown, contacts, acc = 0, paused = false, follow = true, tampered = false, kicks = 0;
 let targetSpeed = 0;
 
 function reset() {
   env?.world.free();
   env = makeEnv(R, { targetSpeed, gravity: +$('grav').value });
   env.freq = brainFreq(brain);
-  hash = 0x811c9dc5; upTime = 0; wasDown = false; contacts = [0, 0]; acc = 0; tampered = false;
+  hash = 0x811c9dc5; upTime = 0; wasDown = false; contacts = [0, 0]; acc = 0; tampered = false; kicks = 0;
   for (const m of prints.splice(0)) scene.remove(m);
   $('fall').style.opacity = 0;
   buildGhosts();
@@ -161,6 +161,24 @@ function tick() {
     contacts[i] = c;
   }
 }
+
+// ---------- kick ----------
+// Click (not drag) a body part to kick it along the view direction; counts as tampering for the replay check.
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+let downAt = null;
+renderer.domElement.addEventListener('pointerdown', (e) => { downAt = [e.clientX, e.clientY]; });
+renderer.domElement.addEventListener('pointerup', (e) => {
+  if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 5) return;
+  ndc.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+  ray.setFromCamera(ndc, camera);
+  const names = Object.keys(meshes), hit = ray.intersectObjects(names.map((n) => meshes[n]))[0];
+  if (!hit) return;
+  const name = names.find((n) => meshes[n] === hit.object), d = ray.ray.direction;
+  const h = Math.hypot(d.x, d.z) || 1;
+  env.rd.bodies[name].applyImpulseAtPoint({ x: (d.x / h) * 25, y: 0, z: (d.z / h) * 25 }, hit.point, true);
+  tampered = true;
+  kicks++;
+});
 
 // ---------- ui ----------
 function setTarget(v) {
@@ -257,7 +275,7 @@ function stats() {
   const rows = [
     ['brain', brainName], ['time', env.t.toFixed(2) + ' s'], ['upright', upTime.toFixed(2) + ' s'],
     ['pelvis height', p.y.toFixed(2) + ' m'], ['speed', env.rd.bodies.pelvis.linvel().z.toFixed(2) + ' m/s'], ['distance', Math.hypot(p.x, p.z).toFixed(2) + ' m'],
-    ['feet', `${contacts[0] ? 'L' : '·'} ${contacts[1] ? 'R' : '·'}`], ['hash @ 10 s', env.hash10 ?? '…'], ['replay', proofStatus()],
+    ['feet', `${contacts[0] ? 'L' : '·'} ${contacts[1] ? 'R' : '·'}`], ['hash @ 10 s', env.hash10 ?? '…'], ['replay', proofStatus()], ['kicks', kicks],
   ];
   $('stats').innerHTML = rows.map(([k, v]) => `<span>${k}</span><span>${v}</span>`).join('');
 }
