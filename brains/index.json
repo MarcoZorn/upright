@@ -29,6 +29,12 @@
    "target": 0,
    "gravity": 9.81,
    "hash10": "b3c4fa14"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.01,
+   "pairs": 256
   }
  },
  {
@@ -46,6 +52,12 @@
    "target": 0,
    "gravity": 9.81,
    "hash10": "53aef030"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.01,
+   "pairs": 256
   }
  },
  {
@@ -96,6 +108,12 @@
    "target": 0.4,
    "gravity": 9.81,
    "hash10": "2fd6f976"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.017490062499999997,
+   "pairs": 256
   }
  },
  {
@@ -130,6 +148,12 @@
    "target": 0.4,
    "gravity": 9.81,
    "hash10": "e0fcad1f"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.02660019880468749,
+   "pairs": 256
   }
  },
  {
@@ -147,6 +171,12 @@
    "target": 0.4,
    "gravity": 9.81,
    "hash10": "8fd8ee30"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.03059022862539061,
+   "pairs": 256
   }
  },
  {
@@ -181,6 +211,12 @@
    "target": 0.4,
    "gravity": 9.81,
    "hash10": "b70ad555"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.0351787629191992,
+   "pairs": 256
   }
  },
  {
@@ -215,6 +251,12 @@
    "target": 0.4,
    "gravity": 9.81,
    "hash10": "11de062f"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.040455577357079074,
+   "pairs": 256
   }
  },
  {
@@ -249,6 +291,12 @@
    "target": 0.4,
    "gravity": 9.81,
    "hash10": "936626d6"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.046523913960640935,
+   "pairs": 256
   }
  },
  {
@@ -266,6 +314,12 @@
    "target": 0.4,
    "gravity": 9.81,
    "hash10": "fc113ec0"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.046523913960640935,
+   "pairs": 256
   }
  },
  {
@@ -283,6 +337,12 @@
    "target": 0.4,
    "gravity": 9.81,
    "hash10": "5f743e92"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "pairs": 256
   }
  },
  {
@@ -300,6 +360,12 @@
    "target": 0.4,
    "gravity": 9.81,
    "hash10": "2a92b552"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.05350250105473707,
+   "pairs": 256
   }
  },
  {
@@ -317,6 +383,12 @@
    "target": 0.4,
    "gravity": 9.81,
    "hash10": "eeb40908"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "pairs": 256
   }
  },
  {
@@ -334,6 +406,12 @@
    "target": 0.4,
    "gravity": 9.81,
    "hash10": "2d1e6077"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.05350250105473707,
+   "pairs": 256
   }
  },
  {
@@ -368,6 +446,12 @@
    "target": 0.4,
    "gravity": 9.81,
    "hash10": "24fe5fb0"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "pairs": 256
   }
  },
  {
@@ -386,6 +470,12 @@
    "target": 0.4,
    "gravity": 9.81,
    "hash10": "62231d0d"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "pairs": 256
   }
  },
  {
@@ -421,6 +511,12 @@
    "target": 1,
    "gravity": 9.81,
    "hash10": "ab1d9edf"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "pairs": 256
   }
  },
  {
@@ -474,6 +570,12 @@
    "target": 1,
    "gravity": 9.81,
    "hash10": "8e18a634"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "pairs": 256
   }
  },
  {
@@ -528,6 +630,12 @@
    "target": 1,
    "gravity": 9.81,
    "hash10": "c44c09a7"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "pairs": 256
   }
  },
  {
@@ -564,6 +672,12 @@
    "target": 1,
    "gravity": 9.81,
    "hash10": "371b6bab"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "pairs": 256
   }
  },
  {
@@ -600,6 +714,12 @@
    "target": 1,
    "gravity": 9.81,
    "hash10": "44e7ceb5"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "pairs": 256
   }
  },
  {
@@ -619,6 +739,12 @@
    "target": 1,
    "gravity": 9.81,
    "hash10": "5d20c344"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "pairs": 256
   }
  },
  {
@@ -655,6 +781,12 @@
    "target": 2,
    "gravity": 9.81,
    "hash10": "54d352e6"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.010567812695353989,
+   "pairs": 256
   }
  },
  {
@@ -691,6 +823,12 @@
    "target": 2,
    "gravity": 9.81,
    "hash10": "f73cebbe"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.028110591862711646,
+   "pairs": 256
   }
  },
  {
@@ -743,6 +881,12 @@
    "target": 2,
    "gravity": 9.81,
    "hash10": "4697baf6"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "pairs": 256
   }
  },
  {
@@ -777,6 +921,12 @@
    "target": 2,
    "gravity": 9.81,
    "hash10": "d32c54d"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "pairs": 256
   }
  },
  {
@@ -827,6 +977,12 @@
    "target": 2,
    "gravity": 9.81,
    "hash10": "96fad318"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "pairs": 256
   }
  },
  {
@@ -861,6 +1017,12 @@
    "target": 2,
    "gravity": 9.81,
    "hash10": "89b6f218"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "pairs": 256
   }
  },
  {
@@ -911,6 +1073,12 @@
    "target": 2,
    "gravity": 9.81,
    "hash10": "9381eb1f"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "pairs": 256
   }
  },
  {
@@ -961,6 +1129,12 @@
    "target": 2,
    "gravity": 9.81,
    "hash10": "619c145f"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "pairs": 256
   }
  },
  {
@@ -995,6 +1169,12 @@
    "target": 2,
    "gravity": 9.81,
    "hash10": "fda01f90"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "pairs": 256
   }
  },
  {
@@ -1061,6 +1241,12 @@
    "target": 2,
    "gravity": 9.81,
    "hash10": "8e697e6e"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "pairs": 256
   }
  },
  {
@@ -1111,6 +1297,12 @@
    "target": 2,
    "gravity": 9.81,
    "hash10": "98bca145"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "pairs": 256
   }
  },
  {
@@ -1145,6 +1337,12 @@
    "target": 2,
    "gravity": 9.81,
    "hash10": "86f1f386"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "pairs": 256
   }
  },
  {
@@ -1195,6 +1393,12 @@
    "target": 2,
    "gravity": 9.81,
    "hash10": "690ba2b"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "pairs": 256
   }
  },
  {
@@ -1245,6 +1449,12 @@
    "target": 2,
    "gravity": 9.81,
    "hash10": "e5af2a60"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "pairs": 256
   }
  },
  {
@@ -1295,6 +1505,12 @@
    "target": 2,
    "gravity": 9.81,
    "hash10": "7f4b6000"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "pairs": 256
   }
  },
  {
@@ -1327,6 +1543,64 @@
    "target": 0,
    "gravity": 9.81,
    "hash10": "b3c4fa14"
+  }
+ },
+ {
+  "run": "Y",
+  "file": "Y-gen01501.json",
+  "gen": 1500,
+  "stage": "jog",
+  "fitness": 408.8,
+  "upFrac": 0.746,
+  "speed": {
+   "0": 0.624349702830871,
+   "1": 1.0079996179272976,
+   "2": 1.3289711356163059
+  },
+  "proof": {
+   "target": 2,
+   "gravity": 9.81,
+   "hash10": "92b34c8"
+  },
+  "es": {
+   "seed": 1,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "pairs": 256
+  }
+ },
+ {
+  "run": "Z",
+  "file": "Z-gen00038.json",
+  "gen": 37,
+  "stage": "stand",
+  "fitness": 285.8,
+  "upFrac": 0.98,
+  "speed": {
+   "0": 0.009031384785520569
+  },
+  "graduated": true,
+  "proof": {
+   "target": 0,
+   "gravity": 9.81,
+   "hash10": "71c96057"
+  }
+ },
+ {
+  "run": "Z",
+  "file": "Z-gen00051.json",
+  "gen": 50,
+  "stage": "shuffle",
+  "fitness": 304,
+  "upFrac": 0.725,
+  "speed": {
+   "0": 0.11469548568129569,
+   "0.4": 0.3086739919648314
+  },
+  "proof": {
+   "target": 0.4,
+   "gravity": 9.81,
+   "hash10": "d5fed672"
   }
  }
 ]
