@@ -80,13 +80,16 @@
     <button id="follow">follow: on</button>
     <button id="load">load .json</button>
   </div>
+  <div class="row">
+    <button id="ghosts" title="g" disabled>ghosts: off</button>
+  </div>
   <input id="file" type="file" accept=".json" hidden>
 
   <div id="stats"></div>
 </div>
 <div id="fall">fell</div>
 <div id="chartBox"><div id="chartTitle">training: eval fitness (line), upright % (shade)</div><canvas id="chart" width="640" height="240"></canvas></div>
-<div id="hint">drag to orbit · scroll to zoom · <kbd>space</kbd> pause · <kbd>r</kbd> reset · <kbd>p</kbd> push</div>
+<div id="hint">drag to orbit · scroll to zoom · <kbd>space</kbd> pause · <kbd>r</kbd> reset · <kbd>p</kbd> push · <kbd>g</kbd> ES siblings</div>
 <script type="module" src="viewer.js"></script>
 </body>
 </html>

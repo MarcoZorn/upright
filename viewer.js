@@ -5,6 +5,7 @@ import R from '@dimforge/rapier3d-compat';
 import { PARTS, fallen, OBS_SIZE } from './src/body.js';
 import { makeEnv, observe, stepEnv, stateHash, think, zeroBrain, randomBrain, brainFreq, DT, ACT_EVERY } from './src/sim.js';
 import { deserialize } from './src/mlp.js';
+import { siblings, ghostEnvs } from './src/ghosts.js';
 
 await R.init();
 const $ = (id) => document.getElementById(id);
@@ -76,7 +77,7 @@ try { index = await (await fetch('brains/index.json')).json(); } catch { /* no t
 const select = $('brain');
 const options = [['zero', 'zero: holds the rest pose'], ...[1, 2, 3, 4, 5].map((s) => [`random:${s}`, `random init, seed ${s}`])];
 if (index.length) options.unshift(['trained', 'trained (pick generation)']);
-const STAGE_SPEED = { stand: 0, walk: 1, run: 3 };
+const STAGE_SPEED = { stand: 0, shuffle: 0.4, walk: 1, jog: 2, run: 3 };
 for (const [v, t] of options) select.add(new Option(t, v));
 const gen = $('gen');
 gen.max = Math.max(0, index.length - 1);
@@ -86,6 +87,30 @@ async function loadIndexed(i) {
   const e = index[i];
   if (!cache.has(e.file)) cache.set(e.file, deserialize(await (await fetch('brains/' + e.file)).text()));
   return cache.get(e.file);
+}
+
+// ---------- ES siblings ("ghosts") ----------
+// The 16 perturbed brains ES sampled around this generation (8 antithetic pairs), walking alongside it.
+let ghostsOn = false, ghostSibs = null, ghosts = [];
+const ghostMats = Array.from({ length: 16 }, () => new THREE.MeshStandardMaterial({ color: 0x8d877c, transparent: true, opacity: 0.22, depthWrite: false }));
+function clearGhosts() {
+  for (const g of ghosts) { g.env.world.free(); for (const m of Object.values(g.meshes)) scene.remove(m); }
+  ghosts = [];
+}
+function buildGhosts() {
+  clearGhosts();
+  if (!ghostsOn || !ghostSibs) return;
+  ghosts = ghostEnvs(R, ghostSibs, targetSpeed, +$('grav').value).map((g, i) => {
+    const gm = {};
+    for (const name of Object.keys(PARTS)) { gm[name] = new THREE.Mesh(meshes[name].geometry, ghostMats[i]); scene.add(gm[name]); }
+    return { ...g, meshes: gm };
+  });
+}
+function prepareGhosts() {
+  const e = select.value === 'trained' ? index[+gen.value] : null;
+  $('ghosts').disabled = !e?.es;
+  ghostSibs = null;
+  if (ghostsOn && e?.es) ghostSibs = siblings(brain, e.gen, e.es, 8);
 }
 
 // ---------- sim ----------
@@ -99,6 +124,7 @@ function reset() {
   hash = 0x811c9dc5; upTime = 0; wasDown = false; contacts = [0, 0]; acc = 0; tampered = false;
   for (const m of prints.splice(0)) scene.remove(m);
   $('fall').style.opacity = 0;
+  buildGhosts();
 }
 
 async function pickBrain() {
@@ -111,13 +137,16 @@ async function pickBrain() {
     const e = index[+gen.value];
     brainName = `gen ${e.gen}`;
     $('genLabel').textContent = `${e.gen}${e.stage ? ' · ' + e.stage : ''}`;
-    setTarget(STAGE_SPEED[e.stage] ?? 0);
+    setTarget(e.proof?.target ?? STAGE_SPEED[e.stage] ?? 0);
+    await loadLog(e.run);
     drawChart(e.gen);
   }
+  prepareGhosts();
   reset();
 }
 
 function tick() {
+  for (const g of ghosts) { g.env.targetSpeed = targetSpeed; stepEnv(g.env, think(g.brain, observe(g.env), g.env.step)); }
   stepEnv(env, think(brain, observe(env), env.step));
   hash = stateHash(env, hash);
   if (Math.abs(env.t - 10) < 1e-6) env.hash10 = hash.toString(16);
@@ -144,10 +173,14 @@ $('ts').oninput = () => setTarget(+$('ts').value);
 
 // Training curve from the run's log (one JSON line per generation).
 let log = [];
-try {
-  const runName = index.at(-1)?.run ?? 'main';
-  log = (await (await fetch(`runs/${runName}/log.jsonl`)).text()).trim().split('\n').map((l) => JSON.parse(l));
-} catch { /* no log yet */ }
+const logs = new Map();
+async function loadLog(run) {
+  if (!logs.has(run)) {
+    try { logs.set(run, (await (await fetch(`runs/${run}/log.jsonl`)).text()).trim().split('\n').map((l) => JSON.parse(l))); }
+    catch { logs.set(run, []); }
+  }
+  log = logs.get(run);
+}
 function drawChart(markGen) {
   if (!log.length) return;
   $('chartBox').style.display = 'block';
@@ -168,7 +201,6 @@ function drawChart(markGen) {
   g.fillStyle = '#8d877c'; g.font = '20px ui-monospace, monospace';
   g.fillText(`gen ${log.at(-1).gen}`, W - 130, 24);
 }
-drawChart();
 
 const speed = () => 10 ** +$('speed').value;
 $('speed').oninput = () => { $('speedLabel').textContent = speed().toFixed(2) + '×'; };
@@ -176,6 +208,11 @@ select.onchange = pickBrain;
 gen.oninput = pickBrain;
 $('reset').onclick = reset;
 $('grav').onchange = reset;
+$('ghosts').onclick = () => {
+  ghostsOn = !ghostsOn;
+  $('ghosts').textContent = ghostsOn ? 'ghosts: computing…' : 'ghosts: off';
+  setTimeout(() => { prepareGhosts(); reset(); $('ghosts').textContent = `ghosts: ${ghostsOn ? 'on' : 'off'}`; }, 30);
+};
 $('pause').onclick = () => { paused = !paused; $('pause').textContent = paused ? 'play' : 'pause'; };
 $('follow').onclick = () => { follow = !follow; $('follow').textContent = `follow: ${follow ? 'on' : 'off'}`; };
 $('push').onclick = () => {
@@ -196,6 +233,7 @@ addEventListener('keydown', (e) => {
   if (e.code === 'Space') { e.preventDefault(); $('pause').click(); }
   if (e.key === 'r') reset();
   if (e.key === 'p') $('push').click();
+  if (e.key === 'g' && !$('ghosts').disabled) $('ghosts').click();
 });
 function resize() {
   renderer.setSize(innerWidth, innerHeight);
@@ -226,6 +264,18 @@ function stats() {
 
 // ---------- loop ----------
 function draw() {
+  if (ghosts.length) {
+    // fallen siblings go dark and faint; the upright ones are ranked by distance: top 4 orange, the rest sand
+    ghosts.forEach((g) => { g.down ||= fallen(g.env.rd); });
+    const up = ghosts.map((g, i) => [g.env.rd.bodies.pelvis.translation().z, i]).filter(([, i]) => !ghosts[i].down).sort((a, b) => b[0] - a[0]);
+    ghosts.forEach((g, i) => { ghostMats[i].color.setHex(0x3a3732); ghostMats[i].opacity = 0.12; });
+    up.forEach(([, i], r) => { ghostMats[i].color.setHex(r < 4 ? 0xf2a65a : 0xb9ad98); ghostMats[i].opacity = 0.24; });
+    for (const g of ghosts) for (const [name, b] of Object.entries(g.env.rd.bodies)) {
+      const p = b.translation(), q = b.rotation();
+      g.meshes[name].position.set(p.x, p.y, p.z);
+      g.meshes[name].quaternion.set(q.x, q.y, q.z, q.w);
+    }
+  }
   for (const [name, b] of Object.entries(env.rd.bodies)) {
     const p = b.translation(), q = b.rotation();
     meshes[name].position.set(p.x, p.y, p.z);
