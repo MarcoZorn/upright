@@ -40,15 +40,23 @@ Real rigid-body physics ([Rapier](https://rapier.rs)'s cross-platform determinis
 
 ## Status
 
-- [x] Ragdoll stands in Rapier, in Node and in the browser
-- [x] Deterministic physics, brain save/load gives identical rollouts
-- [x] Viewer: orbit camera, slow motion, footprints, push button, generation picker
-- [x] Evolution strategies: antithetic sampling, rank shaping, Adam, worker threads (capped at 70% of the machine), checkpoint/resume
+- [x] Ragdoll stands in Rapier, in Node and in the browser. Physics is deterministic across JS engines.
+- [x] Evolution strategies: antithetic sampling, rank shaping, Adam, worker threads capped at 70% of the machine, checkpoint/resume
 - [x] Curriculum stand → shuffle → walk → jog → run, with honest metrics: credit for the fall itself is taken back
-- [x] NEAT baseline (my [neat-from-scratch](https://github.com/MarcoZorn/neat-from-scratch) engine) and an ES-vs-NEAT plot
+- [x] **It walks on its own.** Plain ES never took a step in 450 generations. With a helping hand that is annealed to zero (Yu, Turk & Liu 2018), it passed the walk stage unassisted, on two seeds:
+  - run Y at gen 714
+  - run Z: passed shuffle at gen 184, now in the walk stage
+- [x] **It runs, sort of:** at 2 m/s the duty factor is 0.44 with 45% flight, but it's a two-footed *bound* (inter-leg phase ≈ 0.6 rad), not a human run. The arm with a learnable oscillator drifted to the same in-phase hop by itself. Details in the [devlog](docs/DEVLOG.md).
 - [x] Gait instruments: duty factor, flight, cadence, inter-leg phase, skip rate, Froude number
-- [ ] A robust walk (in progress: see the [devlog](docs/DEVLOG.md))
-- [ ] Run, then Mars and Moon gravity
+- [x] Viewer:
+  - orbit camera, slow motion, footprints
+  - Earth/Mars/Moon gravity
+  - a replay check against the training hash
+  - ES siblings as ghosts (`g`)
+  - click a body part to kick it
+- [ ] Pass the jog stage with pushes on, then the run stage
+- [ ] 8/10 seeds walking at 1 m/s (the pre-registered gate before any Moon or Mars training: [PREREG.md](docs/PREREG.md), [amendment 1](docs/PREREG-AMENDMENT-1.md))
+- [ ] NEAT baseline at the same budget (`neat.mjs` is written but hasn't been run yet)
 
 ## Run it
 
@@ -57,7 +65,8 @@ npm install
 node test.mjs           # determinism (incl. V8 vs JavaScriptCore), save/load, ES, gait instruments
 node stand.mjs          # headless smoke run
 node train.mjs --run runs/x --hidden 64 --cpg   # train (resumes; Ctrl-C checkpoints)
-node neat.mjs --run runs/neat --stage 2         # NEAT baseline
+node neat.mjs --run runs/neat --stage 2         # NEAT baseline (not run yet)
+node compare.mjs runs/W:W runs/Y:Y              # progress chart -> docs/progress.svg
 python3 -m http.server  # then open http://localhost:8000
 ```
 
@@ -73,7 +82,10 @@ src/sim.js    environment, rollout, trajectory hash
 src/task.js   reward and curriculum
 src/es.js     evolution strategies
 src/gait.js   gait instruments
-train.mjs     ES training, neat.mjs NEAT baseline
+src/ghosts.js rebuilds a generation's ES siblings exactly, for the viewer
+src/trig.js   sin/cos from + and * only (same bits in every JS engine)
+train.mjs     ES training, neat.mjs NEAT baseline, compare.mjs progress chart
+tools/        frame capture -> gif/mp4 for clips
 viewer.js     three.js viewer
 test.mjs      checks
 ```
