@@ -10,6 +10,12 @@ A 3D human ragdoll that learns to stand, walk and run by neuroevolution, with no
 
 ![Unassisted forward speed vs episodes for three runs](docs/progress.svg)
 
+### Watch the gradient
+
+![The 16 ES siblings of generation 714 walking alongside it](docs/ghosts.gif)
+
+Press **g** in the viewer to show the 16 perturbed brains (8 antithetic pairs) that evolution strategies sampled around the selected generation, walking as ghosts next to it. The fallen ones fade out; the four furthest upright ones are orange. These aren't look-alikes: the page regenerates the training run's noise table and offsets, and the siblings are bit-identical to the brains the training workers evaluated (checked in `test.mjs`). Their weighted difference is the step that produced the next generation.
+
 Real rigid-body physics ([Rapier](https://rapier.rs)'s cross-platform deterministic WASM build). The exact same simulation code runs headless in Node for training and in the page for viewing. Nothing on the hot path depends on the JS engine's `Math` functions. The test suite checks that V8 (Node) and JavaScriptCore (Bun) produce the identical trajectory, bit for bit, so a brain behaves in your browser exactly as it did in training.
 
 **Where it's going:** [ROADMAP.md](docs/ROADMAP.md). Does a humanoid that taught itself to walk and run switch gaits at the same Froude number as people, and does it start *skipping* in lunar gravity?
