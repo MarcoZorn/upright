@@ -6,11 +6,12 @@ The gate ([PREREG.md](PREREG.md), amendments [2](PREREG-AMENDMENT-2.md) and [3](
 |---|---|---|---|---|---|
 | 1 | Y | gen 714 | fail | 5/10 | 0.80 |
 | 2 | Z | gen 559 | fail | 5/10 | 0.80 |
-| 3 | S3 | (still in the walk stage) | | | |
+| 3 | S3 | gen 459 | **pass** | 10/10 | 0.90 |
 | 4 | S4 | gen 335 | **pass** | 10/10 | 0.90 |
 | 5 | S5 | (training) | | | |
 | 6 | S6 | (training) | | | |
-| 7–10 | | not started | | | |
+| 7 | S7 | (training) | | | |
+| 8–10 | | not started | | | |
 
-**Status: 1 pass, 2 fail, 7 to go. The experiment still needs every remaining run to pass.**
-Seeds 1 and 2 graduated under the old 0.8 m/s walk threshold (see amendment 3); seed 4 under 0.9.
+**Status: 2 pass, 2 fail, 6 to go. The experiment still needs every remaining run to pass.**
+Seeds 1 and 2 graduated under the old 0.8 m/s walk threshold (see amendment 3); seeds 3 and 4 under 0.9.

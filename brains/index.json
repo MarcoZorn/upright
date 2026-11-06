@@ -1913,5 +1913,248 @@
    "gravity": 9.81,
    "hash10": "3c295c11"
   }
+ },
+ {
+  "run": "S6",
+  "file": "S6-gen00001.json",
+  "gen": 0,
+  "stage": "stand",
+  "fitness": 374.7,
+  "upFrac": 0.902,
+  "speed": {
+   "0": -0.012835825844628397
+  },
+  "es": {
+   "seed": 6,
+   "noise": 16000000,
+   "sigma": 0.01,
+   "cpgSigma": 0.1,
+   "pairs": 256
+  },
+  "proof": {
+   "target": 0,
+   "gravity": 9.81,
+   "hash10": "b3c4fa14"
+  }
+ },
+ {
+  "run": "S6",
+  "file": "S6-gen00051.json",
+  "gen": 50,
+  "stage": "stand",
+  "fitness": 256.4,
+  "upFrac": 0.785,
+  "speed": {
+   "0": 0.03331795689314884
+  },
+  "es": {
+   "seed": 6,
+   "noise": 16000000,
+   "sigma": 0.01,
+   "cpgSigma": 0.1,
+   "pairs": 256
+  },
+  "proof": {
+   "target": 0,
+   "gravity": 9.81,
+   "hash10": "a56c36f8"
+  }
+ },
+ {
+  "run": "S5",
+  "file": "S5-gen00201.json",
+  "gen": 200,
+  "stage": "shuffle",
+  "fitness": 354.6,
+  "upFrac": 1,
+  "speed": {
+   "0": 0.010890884010586913,
+   "0.4": 0.016188239865005057
+  },
+  "es": {
+   "seed": 5,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "cpgSigma": 0.3,
+   "pairs": 256
+  },
+  "proof": {
+   "target": 0.4,
+   "gravity": 9.81,
+   "hash10": "63c23eda"
+  }
+ },
+ {
+  "run": "S3",
+  "file": "S3-gen00451.json",
+  "gen": 450,
+  "stage": "walk",
+  "fitness": 617.8,
+  "upFrac": 1,
+  "speed": {
+   "0": 0.5407984852790846,
+   "1": 0.8173618912696861,
+   "0.4": 0.6513921618461626
+  },
+  "es": {
+   "seed": 3,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "cpgSigma": 0.3,
+   "pairs": 256
+  },
+  "proof": {
+   "target": 1,
+   "gravity": 9.81,
+   "hash10": "95225ae4"
+  }
+ },
+ {
+  "run": "S6",
+  "file": "S6-gen00065.json",
+  "gen": 64,
+  "stage": "stand",
+  "fitness": 356.2,
+  "upFrac": 1,
+  "speed": {
+   "0": 0.024506341852247773
+  },
+  "es": {
+   "seed": 6,
+   "noise": 16000000,
+   "sigma": 0.01,
+   "cpgSigma": 0.1,
+   "pairs": 256
+  },
+  "graduated": true,
+  "proof": {
+   "target": 0,
+   "gravity": 9.81,
+   "hash10": "949cd60b"
+  }
+ },
+ {
+  "run": "S3",
+  "file": "S3-gen00459.json",
+  "gen": 458,
+  "stage": "walk",
+  "fitness": 611.6,
+  "upFrac": 1,
+  "speed": {
+   "0": 0.5769427359104171,
+   "1": 0.9026279687881493,
+   "0.4": 0.707974565029146
+  },
+  "es": {
+   "seed": 3,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "cpgSigma": 0.3,
+   "pairs": 256
+  },
+  "graduated": true,
+  "proof": {
+   "target": 1,
+   "gravity": 9.81,
+   "hash10": "f7f3f3d7"
+  }
+ },
+ {
+  "run": "S6",
+  "file": "S6-gen00101.json",
+  "gen": 100,
+  "stage": "shuffle",
+  "fitness": 174.6,
+  "upFrac": 0.583,
+  "speed": {
+   "0": 0.009839781373739268,
+   "0.4": 0.011910934187471897
+  },
+  "es": {
+   "seed": 6,
+   "noise": 16000000,
+   "sigma": 0.019280627787875218,
+   "cpgSigma": 0.19280627787875218,
+   "pairs": 256
+  },
+  "proof": {
+   "target": 0.4,
+   "gravity": 9.81,
+   "hash10": "d7853f4"
+  }
+ },
+ {
+  "run": "S5",
+  "file": "S5-gen00251.json",
+  "gen": 250,
+  "stage": "shuffle",
+  "fitness": 432.1,
+  "upFrac": 1,
+  "speed": {
+   "0": 0.12053766548633604,
+   "0.4": 0.15472364872694055
+  },
+  "es": {
+   "seed": 5,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "cpgSigma": 0.3,
+   "pairs": 256
+  },
+  "proof": {
+   "target": 0.4,
+   "gravity": 9.81,
+   "hash10": "7610b742"
+  }
+ },
+ {
+  "run": "S3",
+  "file": "S3-gen00501.json",
+  "gen": 500,
+  "stage": "jog",
+  "fitness": 594.4,
+  "upFrac": 1,
+  "speed": {
+   "0": 0.5132716536521924,
+   "1": 0.8024797379970571,
+   "2": 1.16738387346268
+  },
+  "es": {
+   "seed": 3,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "cpgSigma": 0.3,
+   "pairs": 256
+  },
+  "proof": {
+   "target": 2,
+   "gravity": 9.81,
+   "hash10": "db07c28a"
+  }
+ },
+ {
+  "run": "S5",
+  "file": "S5-gen00281.json",
+  "gen": 280,
+  "stage": "shuffle",
+  "fitness": 476.3,
+  "upFrac": 1,
+  "speed": {
+   "0": 0.2712863355875022,
+   "0.4": 0.30004955530166705
+  },
+  "es": {
+   "seed": 5,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "cpgSigma": 0.3,
+   "pairs": 256
+  },
+  "graduated": true,
+  "proof": {
+   "target": 0.4,
+   "gravity": 9.81,
+   "hash10": "5324d306"
+  }
  }
 ]
