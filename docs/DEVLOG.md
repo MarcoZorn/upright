@@ -217,3 +217,24 @@ So "help, then anneal it away" isn't a one-seed fluke, and starting the help ear
 - **It forgot how to stand.** At target 0 it falls.
 
 **What this means for the pre-registration.** The Moon hypothesis (H2: skip/hop at low g) now needs a stronger control than planned. If the Earth baseline already hops at speed, "it hops on the Moon" says nothing about gravity. Only a *change* in Δφ or skip rate versus Earth, at matched Froude number, would. I'm adding that comparison as an amendment rather than editing PREREG.md, so the original timestamp still means something.
+
+## 2026-11-06: the Earth gate, and how run Z destroyed itself
+
+**`gate.mjs`** applies the pre-registered Earth gate to each run's latest brain. A brain passes if, at a 1 m/s target with no pushes and no help, it stays upright for the whole 10 s and averages ≥ 0.8 m/s on at least 8 of 10 fresh seeds; training never uses those seeds.
+- **Y** (gen 1969): **passes**, 10/10, 1.12 m/s, duty 0.55.
+- **Z** (gen 489): fails, upright 10/10 but 0.73 m/s.
+
+The experiment needs 8 of 10 *training runs* to pass. Seeds 3 and 4 (runs S3, S4) started today with Z's recipe.
+
+**Z collapsed in the jog stage.** It passed walk at gen 559, then failed in two stacked ways:
+1. **The help reset to 1 on entering jog, and at 2 m/s its forward pull topples the body.** Helped, Z stayed up 33% of the time; its unassisted evals in the same generation were 100% upright at 1.06 m/s.
+2. **σ had no floor.** Survival-targeted σ shrank 15% per generation towards 0. At σ → 0 the ES estimate is pure noise, and Adam turns noise into full-size steps (|Δ| ≈ 2 per generation). By gen 600 the brain couldn't stand.
+
+**Fixes:**
+- **σ is floored at 0.003.**
+- **The help is annealed whenever the bare brain does at least as well as the helped one**, and is now used only in the shuffle and walk stages: its job is making stepping discoverable, not running.
+- **`--init brain.json`** restarts a run from a saved brain, rebuilding the obs-norm stats from its mean and std.
+- **`--warmup N`** ramps the learning rate. My first restart without it moved every parameter by the full learning rate on Adam's first step and dropped the bare evals from 95% to 21% upright in one generation.
+- **`--fresh` now also clears `gens/`.** Before, leftover brains from Z's first attempt made the gate report its latest brain as "upright 2%".
+
+Z2 restarts from Z's gen-559 walk graduate in the jog stage with all of the above.
