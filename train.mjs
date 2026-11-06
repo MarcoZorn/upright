@@ -24,7 +24,7 @@ const cfg = {
   saveEvery: +(args.saveEvery ?? 10), publishEvery: +(args.publishEvery ?? 50), quiet: !!args.quiet,
   stage: args.stage !== undefined ? +args.stage : undefined,
   alive: +(args.alive ?? 1), pushScale: +(args.pushScale ?? 1), hidden: +(args.hidden ?? 512),
-  cpg: !!args.cpg, cpgSigma: +(args.cpgSigma ?? 0.1), freezeMlp: !!args.freezeMlp, gravity: +(args.gravity ?? 9.81), rewind: +(args.rewind ?? 1), fallPenalty: +(args.fallPenalty ?? 10), seconds: +(args.seconds ?? 10), assist: +(args.assist ?? 0), assistStart: +(args.assist ?? 0), sigmaMax: +(args.sigmaMax ?? 0.03), brains: args.brains ?? 'brains',
+  cpg: !!args.cpg, cpgSigma: +(args.cpgSigma ?? 0.1), freezeMlp: !!args.freezeMlp, gravity: +(args.gravity ?? 9.81), rewind: +(args.rewind ?? 1), fallPenalty: +(args.fallPenalty ?? 10), seconds: +(args.seconds ?? 10), assist: +(args.assist ?? 0), assistStart: +(args.assist ?? 0), sigmaMax: +(args.sigmaMax ?? 0.03), sigmaMin: +(args.sigmaMin ?? 0.003), warmup: +(args.warmup ?? 0), brains: args.brains ?? 'brains',
   adaptSigma: args.adaptSigma === undefined ? true : args.adaptSigma !== 'false',
 };
 const dir = cfg.run, stateFile = path.join(dir, 'state.json'), logFile = path.join(dir, 'log.jsonl');
@@ -58,6 +58,18 @@ if (saved) {
   const explicit = Object.fromEntries(Object.keys(args).filter((k) => k in cfg).map((k) => [k, cfg[k]]));
   Object.assign(cfg, s.cfg, { gens: cfg.gens, workers: cfg.workers, quiet: cfg.quiet }, explicit);
   log(`resumed ${dir} at gen ${st.gen}, stage ${STAGES[st.stage].name}`);
+} else if (args.init) {
+  // start from a saved brain (e.g. to restart a run before it went wrong); obs-norm stats rebuilt from its mean/std
+  const b = deserialize(fs.readFileSync(args.init, 'utf8'));
+  theta.set(b.full ?? b.params);
+  const N = 1e6;
+  st = { gen: +(args.initGen ?? b.meta?.gen ?? 0) + 1, stage: STAGES.findIndex((x) => x.name === b.meta?.stage), adam: {}, stats: newStats(OBS_SIZE) };
+  for (let i = 0; i < OBS_SIZE; i++) {
+    st.stats.sum[i] = b.norm.mean[i] * N;
+    st.stats.sumsq[i] = (b.norm.std[i] ** 2 + b.norm.mean[i] ** 2) * N;
+  }
+  st.stats.count = N;
+  log(`initialised from ${args.init} (gen ${st.gen - 1}, stage ${STAGES[st.stage].name})`);
 } else {
   theta.set(createMLP(LAYERS, cfg.seed, { zeroLast: true }).params, cpgDim); // CPG block starts at 0: stand still
   st = { gen: 0, stage: 0, adam: {}, stats: newStats(OBS_SIZE) };
@@ -142,6 +154,9 @@ while (!stopping && st.gen < endGen) {
   // No helping hand while learning to stand: standing is exactly what the springs would replace
   // (run Z, first attempt: with help from gen 0 its bare evals were 4-9% upright after 200 gens).
   if (st.stage === 0) cfg.assist = 0;
+  // ...nor once it walks: the help exists to make stepping discoverable. At jog speed its forward pull knocks
+  // the body over and ES learns to fight it (run Z2: bare upright 95% -> 26% in 13 gens).
+  if (st.stage >= 3) cfg.assist = 0;
   const rng = mulberry32(hash(cfg.seed, st.gen));
   const jobs = [];
   for (let k = 0; k < cfg.pairs; k++) {
@@ -163,7 +178,10 @@ while (!stopping && st.gen < endGen) {
   const grad = esGradient(dim, noise, pairs.map((p, k) => ({ off: jobs[k].off, plus: p.plus.fitness, minus: p.minus.fitness })), cfg.sigma);
   for (let i = 0; i < dim; i++) grad[i] = scale[i] ? grad[i] / scale[i] : 0; // frozen blocks don't move
   const evaluated = theta.slice(); // the brain the evals measured, before this update
-  const stepNorm = adamStep(theta, grad, st.adam, { lr: cfg.lr, l2: cfg.l2 });
+  // lr warm-up: a fresh Adam state moves every parameter by the full lr on its first step, which wrecks a
+  // trained brain loaded with --init (run Z2: bare upright 95% -> 21% in one step)
+  const lr = cfg.warmup ? cfg.lr * Math.min(1, (st.adam.t ?? 0) / cfg.warmup) + 1e-5 : cfg.lr;
+  const stepNorm = adamStep(theta, grad, st.adam, { lr, l2: cfg.l2 });
 
   const mean = (a) => a.reduce((s, x) => s + x, 0) / a.length;
   const m = {
@@ -187,8 +205,10 @@ while (!stopping && st.gen < endGen) {
   if (cpgDim) m.cpg = { freq: +cpgFreq(evaluated).toFixed(3), dphi: +cpgDphi(evaluated).toFixed(3) };
   fs.appendFileSync(logFile, JSON.stringify(m) + '\n');
   log(`gen ${String(st.gen).padStart(5)} ${stage.name.padEnd(5)} fit ${m.fitness.toFixed(1).padStart(7)} pop ${m.popFitness.toFixed(1).padStart(7)} up ${(m.upFrac * 100).toFixed(0).padStart(3)}%/${(m.popUp * 100).toFixed(0).padStart(3)}% speed ${targets.map((t) => `${t}:${m.speed[t].toFixed(2)}`).join(' ')} |Δ| ${stepNorm.toFixed(3)} σ ${cfg.sigma.toFixed(4)}${m.gait ? ` steps ${m.gait.steps.toFixed(1)} duty ${m.gait.duty.toFixed(2)}` : ''}${m.cpg ? ` f ${m.cpg.freq} Δφ ${m.cpg.dphi}` : ''}${cfg.assist ? ` assist ${cfg.assist.toFixed(3)} bare ${(m.bare.upFrac * 100).toFixed(0)}%/${m.bare.speed.toFixed(2)}` : ''} ${m.secs.toFixed(1)}s`);
-  // anneal the helping hand once the assisted brain copes: upright and at 60% of the target speed
-  if (cfg.assist > 0 && m.upFrac >= 0.9 && m.speed[targets[0]] >= 0.6 * targets[0]) {
+  // anneal the helping hand once the assisted brain copes (upright, 60% of the target speed), or as soon as
+  // the brain does at least as well without it: at jog speed the forward pull can knock it over (run Z, gen 560)
+  const copes = m.upFrac >= 0.9 && m.speed[targets[0]] >= 0.6 * targets[0];
+  if (cfg.assist > 0 && (copes || (m.bare && m.bare.upFrac >= m.upFrac))) {
     cfg.assist *= 0.9;
     if (cfg.assist < 0.05) cfg.assist = 0;
   }
@@ -196,7 +216,9 @@ while (!stopping && st.gen < endGen) {
   // perturbations are risky but informative. Below it ES ranks fallers; above it, it explores too little.
   if (cfg.adaptSigma && st.stage > 0) {
     const k = m.popUp < 0.4 ? 0.85 : m.popUp > 0.8 ? 1.15 : 1;
-    const kk = Math.min(k, cfg.sigmaMax / cfg.sigma); // capped: with the helping hand nearly every sibling survives
+    // capped (with the helping hand nearly every sibling survives) and floored: at sigma -> 0 the ES estimate
+    // is pure noise and Adam turns it into full-size random steps (run Z, gens 560-880)
+    const kk = Math.min(Math.max(k, cfg.sigmaMin / cfg.sigma), cfg.sigmaMax / cfg.sigma);
     cfg.sigma *= kk; cfg.cpgSigma *= kk;
     setScale();
   }
