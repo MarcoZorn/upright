@@ -29,7 +29,10 @@ const cfg = {
 };
 const dir = cfg.run, stateFile = path.join(dir, 'state.json'), logFile = path.join(dir, 'log.jsonl');
 fs.mkdirSync(path.join(dir, 'gens'), { recursive: true });
-if (args.fresh) for (const f of [stateFile, logFile]) fs.rmSync(f, { force: true });
+if (args.fresh) {
+  for (const f of [stateFile, logFile]) fs.rmSync(f, { force: true });
+  for (const f of fs.readdirSync(path.join(dir, 'gens'))) fs.rmSync(path.join(dir, 'gens', f)); // stale brains would pass for this run's
+}
 
 // ---------- state ----------
 const saved = fs.existsSync(stateFile) ? JSON.parse(fs.readFileSync(stateFile, 'utf8')) : null;
