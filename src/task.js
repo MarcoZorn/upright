@@ -10,7 +10,7 @@ import { mulberry32 } from './mlp.js';
 export const STAGES = [
   { name: 'stand', targets: [[0, 1]], push: 20, graduate: (m) => m.upFrac >= 0.95 && m.popUp >= 0.8 },
   { name: 'shuffle', targets: [[0.4, 0.8], [0, 0.2]], push: 0, graduate: (m) => m.upFrac >= 0.9 && m.popUp >= 0.7 && m.speed[0.4] > 0.3 },
-  { name: 'walk', targets: [[1, 0.6], [0.4, 0.2], [0, 0.2]], push: 0, graduate: (m) => m.upFrac >= 0.9 && m.popUp >= 0.7 && m.speed[1] > 0.9 } // 0.9, a margin over the gate's 0.8 (amendment 3),
+  { name: 'walk', targets: [[1, 0.6], [0.4, 0.2], [0, 0.2]], push: 0, graduate: (m) => m.upFrac >= 0.9 && m.popUp >= 0.7 && m.speed[1] > 0.9 }, // 0.9: a margin over the gate's 0.8 (amendment 3)
   { name: 'jog', targets: [[2, 0.6], [1, 0.2], [0, 0.2]], push: 8, graduate: (m) => m.upFrac >= 0.9 && m.popUp >= 0.7 && m.speed[2] > 1.6 },
   { name: 'run', targets: [[3, 0.6], [2, 0.1], [1, 0.1], [0, 0.2]], push: 8, graduate: () => false },
 ];
