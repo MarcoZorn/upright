@@ -1644,5 +1644,274 @@
    "gravity": 9.81,
    "hash10": "c663b1ca"
   }
+ },
+ {
+  "run": "S5",
+  "file": "S5-gen00001.json",
+  "gen": 0,
+  "stage": "stand",
+  "fitness": 365.8,
+  "upFrac": 0.875,
+  "speed": {
+   "0": -0.006256956038899996
+  },
+  "es": {
+   "seed": 5,
+   "noise": 16000000,
+   "sigma": 0.01,
+   "cpgSigma": 0.1,
+   "pairs": 256
+  },
+  "proof": {
+   "target": 0,
+   "gravity": 9.81,
+   "hash10": "b3c4fa14"
+  }
+ },
+ {
+  "run": "S3",
+  "file": "S3-gen00301.json",
+  "gen": 300,
+  "stage": "walk",
+  "fitness": 590.7,
+  "upFrac": 1,
+  "speed": {
+   "0": 0.4633764982223523,
+   "1": 0.6146431088447586,
+   "0.4": 0.5183107197284711
+  },
+  "es": {
+   "seed": 3,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "cpgSigma": 0.3,
+   "pairs": 256
+  },
+  "proof": {
+   "target": 1,
+   "gravity": 9.81,
+   "hash10": "963974d4"
+  }
+ },
+ {
+  "run": "S4",
+  "file": "S4-gen00301.json",
+  "gen": 300,
+  "stage": "walk",
+  "fitness": 579.1,
+  "upFrac": 1,
+  "speed": {
+   "0": 0.674005830287935,
+   "1": 0.844132149219515,
+   "0.4": 0.7456139743328114
+  },
+  "es": {
+   "seed": 4,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "cpgSigma": 0.3,
+   "pairs": 256
+  },
+  "proof": {
+   "target": 1,
+   "gravity": 9.81,
+   "hash10": "28de799e"
+  }
+ },
+ {
+  "run": "S5",
+  "file": "S5-gen00051.json",
+  "gen": 50,
+  "stage": "stand",
+  "fitness": 153.6,
+  "upFrac": 0.843,
+  "speed": {
+   "0": 0.03715963443993885
+  },
+  "es": {
+   "seed": 5,
+   "noise": 16000000,
+   "sigma": 0.01,
+   "cpgSigma": 0.1,
+   "pairs": 256
+  },
+  "proof": {
+   "target": 0,
+   "gravity": 9.81,
+   "hash10": "aa26a9ed"
+  }
+ },
+ {
+  "run": "S3",
+  "file": "S3-gen00351.json",
+  "gen": 350,
+  "stage": "walk",
+  "fitness": 597.9,
+  "upFrac": 1,
+  "speed": {
+   "0": 0.5440223336219802,
+   "1": 0.7487885057926197,
+   "0.4": 0.6186801671981826
+  },
+  "es": {
+   "seed": 3,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "cpgSigma": 0.3,
+   "pairs": 256
+  },
+  "proof": {
+   "target": 1,
+   "gravity": 9.81,
+   "hash10": "e01f997b"
+  }
+ },
+ {
+  "run": "S5",
+  "file": "S5-gen00088.json",
+  "gen": 87,
+  "stage": "stand",
+  "fitness": 355.5,
+  "upFrac": 1,
+  "speed": {
+   "0": 0.00995498260017487
+  },
+  "es": {
+   "seed": 5,
+   "noise": 16000000,
+   "sigma": 0.01,
+   "cpgSigma": 0.1,
+   "pairs": 256
+  },
+  "graduated": true,
+  "proof": {
+   "target": 0,
+   "gravity": 9.81,
+   "hash10": "a3f8cf28"
+  }
+ },
+ {
+  "run": "S4",
+  "file": "S4-gen00335.json",
+  "gen": 334,
+  "stage": "walk",
+  "fitness": 554.8,
+  "upFrac": 1,
+  "speed": {
+   "0": 0.7465153753757495,
+   "1": 0.9084968566894553,
+   "0.4": 0.8221687197685261
+  },
+  "es": {
+   "seed": 4,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "cpgSigma": 0.3,
+   "pairs": 256
+  },
+  "graduated": true,
+  "proof": {
+   "target": 1,
+   "gravity": 9.81,
+   "hash10": "54a7ce9b"
+  }
+ },
+ {
+  "run": "S5",
+  "file": "S5-gen00101.json",
+  "gen": 100,
+  "stage": "shuffle",
+  "fitness": 354,
+  "upFrac": 0.956,
+  "speed": {
+   "0": 0.016646950971335214,
+   "0.4": 0.06973239725730468
+  },
+  "es": {
+   "seed": 5,
+   "noise": 16000000,
+   "sigma": 0.017490062499999997,
+   "cpgSigma": 0.17490062499999995,
+   "pairs": 256
+  },
+  "proof": {
+   "target": 0.4,
+   "gravity": 9.81,
+   "hash10": "28a1651b"
+  }
+ },
+ {
+  "run": "S4",
+  "file": "S4-gen00351.json",
+  "gen": 350,
+  "stage": "jog",
+  "fitness": 570.7,
+  "upFrac": 1,
+  "speed": {
+   "0": 0.7475926995277423,
+   "1": 0.9133616209030173,
+   "2": 1.0459477901458767
+  },
+  "es": {
+   "seed": 4,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "cpgSigma": 0.3,
+   "pairs": 256
+  },
+  "proof": {
+   "target": 2,
+   "gravity": 9.81,
+   "hash10": "26e37d3b"
+  }
+ },
+ {
+  "run": "S3",
+  "file": "S3-gen00401.json",
+  "gen": 400,
+  "stage": "walk",
+  "fitness": 629.5,
+  "upFrac": 1,
+  "speed": {
+   "0": 0.45853191018104666,
+   "1": 0.7309451818466206,
+   "0.4": 0.5746715426445022
+  },
+  "es": {
+   "seed": 3,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "cpgSigma": 0.3,
+   "pairs": 256
+  },
+  "proof": {
+   "target": 1,
+   "gravity": 9.81,
+   "hash10": "aa47e2b3"
+  }
+ },
+ {
+  "run": "S5",
+  "file": "S5-gen00151.json",
+  "gen": 150,
+  "stage": "shuffle",
+  "fitness": 458.8,
+  "upFrac": 1,
+  "speed": {
+   "0": 0.15385017544031182,
+   "0.4": 0.2943639487028129
+  },
+  "es": {
+   "seed": 5,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "cpgSigma": 0.3,
+   "pairs": 256
+  },
+  "proof": {
+   "target": 0.4,
+   "gravity": 9.81,
+   "hash10": "3c295c11"
+  }
  }
 ]
