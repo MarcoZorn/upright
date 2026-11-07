@@ -1,6 +1,6 @@
 # Earth gate tally
 
-The gate ([PREREG.md](PREREG.md), amendments [2](PREREG-AMENDMENT-2.md) and [3](PREREG-AMENDMENT-3.md)): each training seed is judged by its walk-stage graduate. That brain must walk at a 1 m/s target, with no pushes and no help, upright for all 10 s and averaging ≥ 0.8 m/s, on ≥ 8 of 10 fresh seeds. The Moon and Mars experiment runs only if ≥ 8 of 10 training seeds pass. Reproduce with `node gate.mjs runs/<run>`.
+The gate ([PREREG.md](PREREG.md), amendments [2](PREREG-AMENDMENT-2.md) and [3](PREREG-AMENDMENT-3.md)): each training seed is judged by its walk-stage graduate. That brain must walk at a 1 m/s target, with no pushes and no help, upright for all 10 s and averaging ≥ 0.8 m/s, on ≥ 8 of 10 fresh seeds. The Moon and Mars experiment runs only if ≥ 8 of 10 training seeds pass. A run that hasn't passed the walk stage by generation 1000 fails ([amendment 4](PREREG-AMENDMENT-4.md)). Reproduce with `node gate.mjs runs/<run>`.
 
 | seed | run | walk graduate | result | gate seeds | mean speed |
 |---|---|---|---|---|---|

@@ -22,12 +22,13 @@ export function gate(brain) {
 
 const index = JSON.parse(fs.readFileSync('brains/index.json', 'utf8'));
 const rows = [];
+const lastGen = (dir) => { try { return JSON.parse(fs.readFileSync(path.join(dir, 'state.json'), 'utf8')).gen; } catch { return 0; } };
 const fmt = (name, g) => `${name.padEnd(16)} ${g.pass ? 'PASS' : 'fail'}  ${g.ok}/10 seeds  speed ${g.speed.toFixed(2)}  upright ${(g.upFrac * 100).toFixed(0)}%  duty ${g.duty.toFixed(2)}`;
 for (const dir of process.argv.slice(2)) {
   const run = path.basename(dir);
   const grad = index.find((e) => e.run === run && e.stage === 'walk' && e.graduated);
   rows.push(grad ? `${run.padEnd(4)} graduate ${fmt(grad.file, gate(deserialize(fs.readFileSync(path.join('brains', grad.file), 'utf8'))))}`
-    : `${run.padEnd(4)} graduate (has not passed the walk stage yet)`);
+    : `${run.padEnd(4)} graduate (has not passed the walk stage yet${lastGen(dir) >= 1000 ? ': FAIL, budget of 1000 gens used (amendment 4)' : ''})`);
   const gens = fs.existsSync(path.join(dir, 'gens')) ? fs.readdirSync(path.join(dir, 'gens')).sort() : [];
   if (gens.length) rows.push(`${''.padEnd(4)} latest   ${fmt(gens.at(-1), gate(deserialize(fs.readFileSync(path.join(dir, 'gens', gens.at(-1)), 'utf8'))))}`);
 }
