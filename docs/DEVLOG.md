@@ -248,3 +248,19 @@ Gate tally: seeds 3 and 4 **pass** (10/10 at 0.90 m/s); seeds 1 and 2 fail (5/10
 - bare, it's upright 3%
 
 It has learned to lean on the help and stand still, which is the stand-still optimum again, only with support. I'm not changing the algorithm for one seed mid-run (the pre-registration requires the same algorithm for every seed), so S6 keeps going and fails at gen 1000 if it stays stuck. For a future recipe, the help should anneal on a schedule as well as on performance, so it can't freeze.
+
+## 2026-11-07 (evening): the gate fails; no Moon experiment with this recipe
+
+| | seeds |
+|---|---|
+| pass | 3, 4, 5 (walk graduates at 0.89–0.90 m/s, 10/10 gate seeds each) |
+| fail | 1 and 2 (graduates on the threshold, 5/10), and 7 (never left the stand stage in 1000 gens) |
+
+With three fails, 8 of 10 is out of reach. The kill criterion in [PREREG.md](PREREG.md) says the gravity experiment isn't run, so it isn't.
+
+That is a real result: **this recipe (64×64 MLP, OpenAI-ES, a helping hand annealed per stage) produces a gate-quality walker on about half of the seeds so far.** The three failure modes are all logged:
+- threshold flaw: seeds 1 and 2, fixed by amendment 3 for later seeds
+- help trap: seed 6
+- never learning to balance well enough to pass the strict stand gate (80% of perturbed siblings upright): seed 7
+
+Seed 6 runs to its budget, and seeds 8–10 are being trained so the reliability estimate covers all ten. A Moon experiment would need a new recipe, a new pre-registration, and new seeds.

@@ -55,7 +55,7 @@ Real rigid-body physics ([Rapier](https://rapier.rs)'s cross-platform determinis
   - ES siblings as ghosts (`g`)
   - click a body part to kick it
 - [ ] Pass the jog stage with pushes on, then the run stage
-- [ ] 8/10 seeds walking at 1 m/s (the pre-registered gate before any Moon or Mars training: [PREREG.md](docs/PREREG.md), [amendment 1](docs/PREREG-AMENDMENT-1.md))
+- [x] **Pre-registered Earth gate: failed.** Only 3 of the first 7 seeds produced a walker that passes. Under the pre-registered kill criterion, the Moon/Mars experiment doesn't run with this recipe. Tally and reasons in [GATE.md](docs/GATE.md); the remaining seeds are being finished to measure reliability.
 - [ ] NEAT baseline at the same budget (`neat.mjs` is written but hasn't been run yet)
 
 ## Run it
