@@ -4027,5 +4027,178 @@
    "gravity": 9.81,
    "hash10": "ce8ea1f4"
   }
+ },
+ {
+  "run": "S9",
+  "file": "S9-gen00451.json",
+  "gen": 450,
+  "stage": "walk",
+  "fitness": 620.1,
+  "upFrac": 1,
+  "speed": {
+   "0": 0.6495674848556535,
+   "1": 0.838271963596346,
+   "0.4": 0.716952735185625
+  },
+  "es": {
+   "seed": 9,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "cpgSigma": 0.30000000000000004,
+   "pairs": 256
+  },
+  "proof": {
+   "target": 1,
+   "gravity": 9.81,
+   "hash10": "6e3d8d0a"
+  }
+ },
+ {
+  "run": "S10",
+  "file": "S10-gen00201.json",
+  "gen": 200,
+  "stage": "shuffle",
+  "fitness": 417.3,
+  "upFrac": 1,
+  "speed": {
+   "0": 0.026919030956924026,
+   "0.4": 0.03505161851644525
+  },
+  "es": {
+   "seed": 10,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "cpgSigma": 0.3,
+   "pairs": 256
+  },
+  "proof": {
+   "target": 0.4,
+   "gravity": 9.81,
+   "hash10": "cbf1b24f"
+  }
+ },
+ {
+  "run": "S9",
+  "file": "S9-gen00481.json",
+  "gen": 480,
+  "stage": "walk",
+  "fitness": 598.5,
+  "upFrac": 1,
+  "speed": {
+   "0": 0.7035125017166155,
+   "1": 0.9009473085403464,
+   "0.4": 0.7818408846855184
+  },
+  "es": {
+   "seed": 9,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "cpgSigma": 0.30000000000000004,
+   "pairs": 256
+  },
+  "graduated": true,
+  "proof": {
+   "target": 1,
+   "gravity": 9.81,
+   "hash10": "4f52de61"
+  }
+ },
+ {
+  "run": "S9",
+  "file": "S9-gen00501.json",
+  "gen": 500,
+  "stage": "jog",
+  "fitness": 623.1,
+  "upFrac": 1,
+  "speed": {
+   "0": 0.694456326961519,
+   "1": 0.9427917957305932,
+   "2": 1.1756589889526396
+  },
+  "es": {
+   "seed": 9,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "cpgSigma": 0.30000000000000004,
+   "pairs": 256
+  },
+  "proof": {
+   "target": 2,
+   "gravity": 9.81,
+   "hash10": "1b36f6f7"
+  }
+ },
+ {
+  "run": "S10",
+  "file": "S10-gen00251.json",
+  "gen": 250,
+  "stage": "shuffle",
+  "fitness": 438.9,
+  "upFrac": 1,
+  "speed": {
+   "0": 0.03997753001749526,
+   "0.4": 0.05288723446428789
+  },
+  "es": {
+   "seed": 10,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "cpgSigma": 0.3,
+   "pairs": 256
+  },
+  "proof": {
+   "target": 0.4,
+   "gravity": 9.81,
+   "hash10": "2b960c80"
+  }
+ },
+ {
+  "run": "S9",
+  "file": "S9-gen00551.json",
+  "gen": 550,
+  "stage": "jog",
+  "fitness": 677.7,
+  "upFrac": 1,
+  "speed": {
+   "0": 0.5671058893203749,
+   "1": 1.034130406379702,
+   "2": 1.4073258638381991
+  },
+  "es": {
+   "seed": 9,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "cpgSigma": 0.30000000000000004,
+   "pairs": 256
+  },
+  "proof": {
+   "target": 2,
+   "gravity": 9.81,
+   "hash10": "1f9d3f26"
+  }
+ },
+ {
+  "run": "S10",
+  "file": "S10-gen00301.json",
+  "gen": 300,
+  "stage": "shuffle",
+  "fitness": 453.6,
+  "upFrac": 1,
+  "speed": {
+   "0": 0.040084284171462155,
+   "0.4": 0.06307604834437386
+  },
+  "es": {
+   "seed": 10,
+   "noise": 16000000,
+   "sigma": 0.03,
+   "cpgSigma": 0.3,
+   "pairs": 256
+  },
+  "proof": {
+   "target": 0.4,
+   "gravity": 9.81,
+   "hash10": "1ff81439"
+  }
  }
 ]
