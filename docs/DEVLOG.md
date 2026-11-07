@@ -238,3 +238,13 @@ The experiment needs 8 of 10 *training runs* to pass. Seeds 3 and 4 (runs S3, S4
 - **`--fresh` now also clears `gens/`.** Before, leftover brains from Z's first attempt made the gate report its latest brain as "upright 2%".
 
 Z2 restarts from Z's gen-559 walk graduate in the jog stage with all of the above.
+
+## 2026-11-07: gate so far, and a dead end in the recipe
+
+Gate tally: seeds 3 and 4 **pass** (10/10 at 0.90 m/s); seeds 1 and 2 fail (5/10 at 0.80, the threshold flaw in amendment 2). Amendment 3 raised the walk graduation threshold; amendment 4 set a 1000-generation budget. Seeds 5–7 are training.
+
+**Seed 6 is stuck in a help trap.** It has been in the shuffle stage with assist frozen at 0.53 since about gen 270. The help anneals when the helped brain copes (upright ≥ 90% and ≥ 60% of the target speed) or when the bare brain does at least as well. S6 does neither:
+- helped, it stands 90% of the time at 0.07 m/s
+- bare, it's upright 3%
+
+It has learned to lean on the help and stand still, which is the stand-still optimum again, only with support. I'm not changing the algorithm for one seed mid-run (the pre-registration requires the same algorithm for every seed), so S6 keeps going and fails at gen 1000 if it stays stuck. For a future recipe, the help should anneal on a schedule as well as on performance, so it can't freeze.
