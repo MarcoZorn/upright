@@ -55,7 +55,7 @@ Real rigid-body physics ([Rapier](https://rapier.rs)'s cross-platform determinis
   - ES siblings as ghosts (`g`)
   - click a body part to kick it
 - [ ] Pass the jog stage with pushes on, then the run stage
-- [x] **Pre-registered Earth gate: failed.** 3 of the 6 decided seeds produced a walker that passes and 3 failed, so 8 of 10 is out of reach. Under the pre-registered kill criterion, the Moon/Mars experiment doesn't run with this recipe. Tally and reasons in [GATE.md](docs/GATE.md); the remaining seeds are being finished to measure reliability.
+- [x] **Pre-registered Earth gate: failed.** 5 of 10 training seeds produced a walker that passes; 8 were needed. Under the pre-registered kill criterion, the Moon/Mars experiment doesn't run with this recipe. Tally and failure modes in [GATE.md](docs/GATE.md).
 - [ ] NEAT baseline at the same budget (`neat.mjs` is written but hasn't been run yet)
 
 ## Run it

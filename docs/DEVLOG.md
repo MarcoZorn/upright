@@ -264,3 +264,14 @@ That is a real result: **this recipe (64×64 MLP, OpenAI-ES, a helping hand anne
 - never learning to balance well enough to pass the strict stand gate (80% of perturbed siblings upright): seed 7
 
 Seed 6 runs to its budget, and seeds 8–10 are being trained so the reliability estimate covers all ten. A Moon experiment would need a new recipe, a new pre-registration, and new seeds.
+
+## 2026-11-07 (late): all ten seeds decided
+
+| | seeds |
+|---|---|
+| pass | 3, 4, 5, 8, 9 (walk graduates at gens 296–746, 0.89–0.90 m/s, 10/10 gate seeds each) |
+| fail | 1, 2 (threshold flaw), 6, 10 (help trap), 7 (stand stage) |
+
+**5 of 10.** Seed 10 fell into the same help trap as seed 6: the assist froze at 0.531 (0.9⁶) around gen 160 and never moved again. At gen 1000, helped, it was upright 91% of the time at 0.09 m/s; bare, 4%. Two of ten seeds hitting the identical trap at the identical assist level makes the fix for a v2 recipe concrete: decay the help on a schedule too, not only on performance.
+
+Every seed that graduated walk under the 0.9 m/s threshold went on to pass the gate. The recipe's weak points are getting there (stand, shuffle with help), not walking once it gets there.
