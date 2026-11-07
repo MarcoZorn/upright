@@ -9,11 +9,11 @@ The gate ([PREREG.md](PREREG.md), amendments [2](PREREG-AMENDMENT-2.md) and [3](
 | 3 | S3 | gen 459 | **pass** | 10/10 | 0.90 |
 | 4 | S4 | gen 335 | **pass** | 10/10 | 0.90 |
 | 5 | S5 | gen 746 | **pass** | 10/10 | 0.89 |
-| 6 | S6 | (training; stuck in the help trap, see devlog) | | | |
+| 6 | S6 | none: help trap, still in shuffle at gen 1000 (see devlog) | fail (budget) | 0/10 | 0.00 |
 | 7 | S7 | none: still in the stand stage at gen 1000 | fail (budget) | 0/10 | -0.01 |
 | 8 | S8 | (training) | | | |
 | 9 | S9 | (training) | | | |
-| 10 | | not started | | | |
+| 10 | S10 | (training) | | | |
 
-**Status (2026-11-07): 3 pass, 3 fail. The gate cannot be met: at most 7 of 10 seeds can pass. Under the pre-registered kill criterion, the Moon/Mars experiment does not run with this training recipe.** The remaining seeds are being finished anyway, to measure how often the recipe produces a walker.
+**Status (2026-11-07): 3 pass, 4 fail. The gate cannot be met: at most 7 of 10 seeds can pass. Under the pre-registered kill criterion, the Moon/Mars experiment does not run with this training recipe.** The remaining seeds are being finished anyway, to measure how often the recipe produces a walker.
 Seeds 1 and 2 graduated under the old 0.8 m/s walk threshold (see amendment 3); seeds 3 and 4 under 0.9.
