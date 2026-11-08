@@ -5,7 +5,7 @@ import { Worker, isMainThread, parentPort, workerData } from 'node:worker_thread
 import { rollout, zeroBrain, randomBrain, LAYERS } from './src/sim.js';
 import { serialize, deserialize, paramCount, createMLP, mulberry32 } from './src/mlp.js';
 import { makeNoise, centeredRanks, esGradient, adamStep } from './src/es.js';
-import { episode } from './src/task.js';
+import { episode, assistCap } from './src/task.js';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 
@@ -108,6 +108,15 @@ if (!isMainThread) {
     assert.equal(b.gen, 4);
     assert.equal(a.theta, b.theta);
     assert.equal(a.adam.m, b.adam.m);
+  });
+
+  await check('the v2 help clock fades on schedule and switches off at k = 29 periods', async () => {
+    assert.equal(assistCap(0, 6), 1);
+    assert.equal(assistCap(5, 6), 1);
+    assert.ok(Math.abs(assistCap(36, 6) - 0.531441) < 1e-9); // the level seeds 6 and 10 froze at, reached by k = 36
+    assert.ok(assistCap(173, 6) > 0.05);
+    assert.equal(assistCap(174, 6), 0);
+    assert.equal(assistCap(5000, 0), 1); // no clock: v1 behaviour
   });
 
   await check('gait instruments classify hand-written footfalls', async () => {

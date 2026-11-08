@@ -8,7 +8,7 @@ try { os.setPriority(19); } catch { /* lowest priority: never get in the way of 
 import { DOFS, OBS_SIZE } from './src/body.js';
 import { createMLP, mulberry32, serialize, toB64, fromB64 } from './src/mlp.js';
 import { makeNoise, esGradient, adamStep, newStats, mergeStats, statsToNorm, seedHash } from './src/es.js';
-import { STAGES, sampleTarget } from './src/task.js';
+import { STAGES, sampleTarget, assistCap } from './src/task.js';
 import { CPG_SIZE, cpgFreq, cpgDphi } from './src/cpg.js';
 import { rollout } from './src/sim.js';
 import R from '@dimforge/rapier3d-compat';
@@ -213,7 +213,7 @@ while (!stopping && st.gen < endGen && st.stage < cfg.until) {
     cfg.assist *= 0.9;
   }
   // v2 (docs/PREREG-V2.md): the help also fades on a clock, so a brain that leans on it can't freeze it (seeds 6, 10)
-  if (cfg.assistPeriod) cfg.assist = Math.min(cfg.assist, cfg.assistStart * 0.9 ** Math.floor((st.gen + 1 - cfg.stageStart) / cfg.assistPeriod));
+  if (cfg.assistPeriod) cfg.assist = Math.min(cfg.assist, cfg.assistStart * assistCap(st.gen + 1 - cfg.stageStart, cfg.assistPeriod));
   if (cfg.assist < 0.05) cfg.assist = 0;
   // Survival-targeted sigma (after stand): keep 40-80% of the perturbed siblings upright, the band where
   // perturbations are risky but informative. Below it ES ranks fallers; above it, it explores too little.

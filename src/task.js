@@ -45,6 +45,14 @@ function helpingHand(env, target, a) {
   pelvis.addForce({ x: -100 * a * v.x, y: 0.4 * a * 71 * 9.81, z: 100 * a * (target - v.z) }, true);
 }
 
+// v2 (docs/PREREG-V2.md): k generations into a helped stage, the help can be at most 0.9^floor(k/period),
+// and is off below 0.05 (k = 29·period). period 0: no clock (v1), never binds.
+export const assistCap = (k, period) => {
+  if (!period) return 1;
+  const a = 0.9 ** Math.floor(k / period);
+  return a < 0.05 ? 0 : a;
+};
+
 // Per brain step: alive bonus + uprightness + speed tracking - energy. Falling ends the episode with a penalty.
 // alive / pushScale: reward and difficulty knobs, set from train.mjs flags for sweeps.
 export function episode(R, brain, { stage = 0, seed = 1, target = sampleTarget(stage, seed), seconds = SECONDS, stats, alive = 1, pushScale = 1, gravity = 9.81, gait = false, rewind = 1, fallPenalty = 10, assist = 0 } = {}) {
