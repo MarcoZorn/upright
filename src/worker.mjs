@@ -28,7 +28,7 @@ parentPort.on('message', (job) => {
   brain.norm.std.set(norm.subarray(OBS_SIZE));
   if (job.genome) { // NEAT baseline: score one genome on the given seeds
     const g = Genome.fromJSON(job.genome);
-    const res = job.seeds.map((seed) => episode(R, g, { stage: job.stage, seed, target: job.target }));
+    const res = job.seeds.map((seed) => episode(R, g, { stage: job.stage, seed, target: job.target, assist: job.assist }));
     parentPort.postMessage({ id: job.id, res });
     return;
   }
