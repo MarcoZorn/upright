@@ -26,6 +26,7 @@ const cfg = {
   alive: +(args.alive ?? 1), pushScale: +(args.pushScale ?? 1), hidden: +(args.hidden ?? 512),
   cpg: !!args.cpg, cpgSigma: +(args.cpgSigma ?? 0.1), freezeMlp: !!args.freezeMlp, gravity: +(args.gravity ?? 9.81), rewind: +(args.rewind ?? 1), fallPenalty: +(args.fallPenalty ?? 10), seconds: +(args.seconds ?? 10), assist: +(args.assist ?? 0), assistStart: +(args.assist ?? 0), sigmaMax: +(args.sigmaMax ?? 0.03), sigmaMin: +(args.sigmaMin ?? 0.003), warmup: +(args.warmup ?? 0), brains: args.brains ?? 'brains',
   adaptSigma: args.adaptSigma === undefined ? true : args.adaptSigma !== 'false',
+  assistPeriod: +(args.assistPeriod ?? 0), stageStart: 0, until: +(args.until ?? 99),
 };
 const dir = cfg.run, stateFile = path.join(dir, 'state.json'), logFile = path.join(dir, 'log.jsonl');
 fs.mkdirSync(path.join(dir, 'gens'), { recursive: true });
@@ -147,7 +148,7 @@ process.on('SIGTERM', stop);
 
 const hash = seedHash;
 const endGen = st.gen + cfg.gens;
-while (!stopping && st.gen < endGen) {
+while (!stopping && st.gen < endGen && st.stage < cfg.until) {
   const g0 = performance.now(), stage = STAGES[st.stage];
   const n = currentNorm();
   norm.set(n.mean, 0); norm.set(n.std, OBS_SIZE);
@@ -210,8 +211,10 @@ while (!stopping && st.gen < endGen) {
   const copes = m.upFrac >= 0.9 && m.speed[targets[0]] >= 0.6 * targets[0];
   if (cfg.assist > 0 && (copes || (m.bare && m.bare.upFrac >= m.upFrac))) {
     cfg.assist *= 0.9;
-    if (cfg.assist < 0.05) cfg.assist = 0;
   }
+  // v2 (docs/PREREG-V2.md): the help also fades on a clock, so a brain that leans on it can't freeze it (seeds 6, 10)
+  if (cfg.assistPeriod) cfg.assist = Math.min(cfg.assist, cfg.assistStart * 0.9 ** Math.floor((st.gen + 1 - cfg.stageStart) / cfg.assistPeriod));
+  if (cfg.assist < 0.05) cfg.assist = 0;
   // Survival-targeted sigma (after stand): keep 40-80% of the perturbed siblings upright, the band where
   // perturbations are risky but informative. Below it ES ranks fallers; above it, it explores too little.
   if (cfg.adaptSigma && st.stage > 0) {
@@ -231,6 +234,7 @@ while (!stopping && st.gen < endGen) {
     publish({ ...meta, graduated: true }, evaluated, n);
     log(`*** graduated from ${stage.name} ***`);
     st.stage++;
+    cfg.stageStart = st.gen;
     cfg.assist = cfg.assistStart; // each new stage starts with the helping hand again (stand never has it)
   }
   else if (st.gen % cfg.publishEvery === 1) publish(meta, evaluated, n);
