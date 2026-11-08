@@ -10,7 +10,7 @@ On top of the v1 rule, the help also fades on a clock: `k` generations into a he
 
 The period was picked from the v1 runs that passed: all of them had reached assist 0 within 140 generations of entering a stage, so the clock should rarely bind on a run that is learning normally and only forces the trapped ones.
 
-Everything else is exactly the v1 recipe as run on seeds 3–10: 64×64 MLP, no CPG, 256 antithetic pairs, σ 0.03 survival-targeted within [0.003, 0.03], lr 0.01, L2 0.005, 16M noise table, pushes on, walk graduation at 0.9 m/s (amendment 3).
+Everything else is exactly the v1 recipe as run on seeds 3–10: 64×64 MLP, no CPG, 256 antithetic pairs, σ starting at 0.01 and survival-targeted within [0.003, 0.03] after the stand stage, lr 0.01, L2 0.005, 16M noise table, pushes on, walk graduation at 0.9 m/s (amendment 3).
 
 ## Seeds, budget, gate
 - Training seeds **11–20**, runs `V11`…`V20`. None has been run before.
@@ -22,3 +22,6 @@ Everything else is exactly the v1 recipe as run on seeds 3–10: 64×64 MLP, no 
 - If fewer than 8 pass, it doesn't run, and the repo says so.
 - **Secondary:** no v2 run ends its budget in the shuffle or walk stage with assist > 0 (the help trap is gone by construction; this checks the code does what it says).
 - Every seed is reported, pass or fail, with its failure mode.
+
+## Correction (same day, before any result)
+The first launch used a starting σ of 0.03 instead of v1's 0.01 (the line above originally said "σ 0.03"). It was stopped about 10 generations into the stand stage, the runs were deleted, and all ten seeds restarted with 0.01. Nothing beyond those first log lines had been seen.
