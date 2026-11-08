@@ -1,7 +1,7 @@
 // The pre-registered Earth gate (docs/PREREG.md): a brain passes if, at a 1 m/s target with no pushes and
 // no assistance, it stays upright for the whole 10 s and averages >= 0.8 m/s, on at least 8 of 10 fresh seeds.
 // The experiment needs 8 of 10 *training seeds* to have such a brain.
-//   node gate.mjs runs/Y runs/Z2 runs/S3 ...
+//   node gate.mjs runs/Y runs/Z2 runs/S3 ...   (also NEAT run dirs, judged on their walk-graduate.json)
 // Per run it judges the walk-stage graduate: the brain that passed the walk stage on *training* evals
 // (docs/PREREG-AMENDMENT-2.md). The latest saved brain is reported too, for information only.
 import R from '@dimforge/rapier3d-compat';
@@ -9,6 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { deserialize } from './src/mlp.js';
 import { episode } from './src/task.js';
+import { Genome } from './vendor/neat/genome.js';
 
 await R.init();
 const SEEDS = Array.from({ length: 10 }, (_, i) => 900001 + i); // never used in training (those come from seedHash)
@@ -26,6 +27,12 @@ const lastGen = (dir) => { try { return JSON.parse(fs.readFileSync(path.join(dir
 const fmt = (name, g) => `${name.padEnd(16)} ${g.pass ? 'PASS' : 'fail'}  ${g.ok}/10 seeds  speed ${g.speed.toFixed(2)}  upright ${(g.upFrac * 100).toFixed(0)}%  duty ${g.duty.toFixed(2)}`;
 for (const dir of process.argv.slice(2)) {
   const run = path.basename(dir);
+  const neat = path.join(dir, 'walk-graduate.json'); // NEAT runs keep their graduate in the run dir (neat.mjs)
+  if (fs.existsSync(neat)) {
+    const n = JSON.parse(fs.readFileSync(neat, 'utf8'));
+    rows.push(`${run.padEnd(4)} graduate ${fmt(`neat gen ${n.gen}`, gate(Genome.fromJSON(n.genome)))}`);
+    continue;
+  }
   const grad = index.find((e) => e.run === run && e.stage === 'walk' && e.graduated);
   rows.push(grad ? `${run.padEnd(4)} graduate ${fmt(grad.file, gate(deserialize(fs.readFileSync(path.join('brains', grad.file), 'utf8'))))}`
     : `${run.padEnd(4)} graduate (has not passed the walk stage yet${lastGen(dir) >= 1000 ? ': FAIL, budget of 1000 gens used (amendment 4)' : ''})`);
