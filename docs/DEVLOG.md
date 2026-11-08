@@ -275,3 +275,16 @@ Seed 6 runs to its budget, and seeds 8–10 are being trained so the reliability
 **5 of 10.** Seed 10 fell into the same help trap as seed 6: the assist froze at 0.531 (0.9⁶) around gen 160 and never moved again. At gen 1000, helped, it was upright 91% of the time at 0.09 m/s; bare, 4%. Two of ten seeds hitting the identical trap at the identical assist level makes the fix for a v2 recipe concrete: decay the help on a schedule too, not only on performance.
 
 Every seed that graduated walk under the 0.9 m/s threshold went on to pass the gate. The recipe's weak points are getting there (stand, shuffle with help), not walking once it gets there.
+
+## 2026-11-08: how the help trap forms, and v2
+
+![helping-hand strength in the shuffle stage, per seed](assist.svg)
+
+The trap isn't a slow slide. Both trapped seeds froze in the **first 7 generations** of the shuffle stage, at the same 0.531 (six ×0.9 fades). The logs show the mechanism:
+- At shuffle entry the stand graduate is better *without* help (the forward pull tips it over), so the "bare does at least as well" rule fades the help every generation.
+- Meanwhile ES adapts to the help. Within about six generations the helped brain is upright more often than the bare one (S10 gen 6: 100% helped vs 65% bare).
+- From then on neither rule fires: bare is worse, and the helped brain stands still, so it never reaches the 0.24 m/s needed to count as coping. The help stays at 0.531 forever.
+
+The seeds that walked kept fading because their helped brains started moving before that crossover.
+
+v2 ([PREREG-V2.md](PREREG-V2.md)) adds a clock: the help can't be stronger than 0.9^floor(k/6) after k generations in a stage (the dashed line), so it reaches zero by k = 174 regardless. Seeds 11–20 are training now, three at a time. `node tools/assist.mjs runs/S3 … --clock 6` redraws the chart.
