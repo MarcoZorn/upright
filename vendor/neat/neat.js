@@ -23,7 +23,7 @@ export class Rng {
 export const DEFAULTS = {
   popSize: 120,
   // mutation
-  pWeight: 0.8, pWeightReplace: 0.1, weightStep: 0.4, weightCap: 8,
+  pWeight: 0.8, pWeightReplace: 0.1, weightStep: 0.4, weightCap: 8, initWeight: 1,
   pAddConn: 0.12, pAddNode: 0.035, pToggle: 0.01, addConnTries: 20,
   // reproduction
   pCrossover: 0.75, survival: 0.35, elitism: 1, elitismMinSize: 5,
@@ -151,7 +151,7 @@ export class Population {
     this.species = [];
     this.genomes = [];
     for (let i = 0; i < this.cfg.popSize; i++) {
-      const g = Genome.initial(nIn, nOut, this.innov, this.rng);
+      const g = Genome.initial(nIn, nOut, this.innov, this.rng, this.cfg.initWeight);
       if (this.cfg.eyes) g.eyes = { angles: [...this.cfg.eyes.angles], range: this.cfg.eyes.range };
       mutate(g, this.innov, this.rng, this.cfg);
       this.genomes.push(g);

@@ -288,3 +288,9 @@ The trap isn't a slow slide. Both trapped seeds froze in the **first 7 generatio
 The seeds that walked kept fading because their helped brains started moving before that crossover.
 
 v2 ([PREREG-V2.md](PREREG-V2.md)) adds a clock: the help can't be stronger than 0.9^floor(k/6) after k generations in a stage (the dashed line), so it reaches zero by k = 174 regardless. Seeds 11–20 are training now, three at a time. `node tools/assist.mjs runs/S3 … --clock 6` redraws the chart.
+
+## 2026-11-08: the NEAT baseline would have been a strawman
+
+`neat.mjs` was written days ago and never run. A smoke run showed every genome falling within a fraction of a second: 32 ten-second episodes took 0.9 s, upright 1% of the time. The vendored NEAT defaults suit small game networks. Here a genome starts fully connected, 79 × 30 = 2,370 connections, all N(0, 1), and every mutation moves ~80% of them by N(0, 0.4) and resets ~8% to fresh N(0, 1). ES starts from a zeroed output layer (hold the neutral pose, which stands) and explores at σ = 0.01.
+
+Comparing against that would make ES look good for free. The mutation scale is now set by flags (`--initWeight --weightStep --pWeight --pWeightReplace`). With `--initWeight 0 --weightStep 0.02 --pWeightReplace 0` the first generation stands 100% of the time, like ES at gen 0. The baseline gets a small sweep of these before any comparison is claimed. That sweep waits for the v2 seeds, because both together would go over the 70% CPU budget.

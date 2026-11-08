@@ -66,7 +66,7 @@ export class Genome {
   // a node created by splitting a connection sits halfway between its ends.
   // Evaluating nodes in depth order then guarantees every input to a node is
   // already computed.
-  static initial(nIn, nOut, innovations, rng) {
+  static initial(nIn, nOut, innovations, rng, initWeight = 1) {
     const g = new Genome(nIn, nOut);
     for (let i = 0; i < nIn; i++) g.nodes.set(i, { id: i, kind: "input", depth: 0 });
     g.biasId = nIn;
@@ -82,7 +82,7 @@ export class Genome {
     for (const src of [...Array(nIn).keys(), nIn]) {
       for (const dst of g.outIds) {
         const innov = innovations.connId(src, dst);
-        g.conns.set(innov, { inId: src, outId: dst, w: rng.normal() , on: true, innov });
+        g.conns.set(innov, { inId: src, outId: dst, w: rng.normal() * initWeight, on: true, innov });
       }
     }
     return g;

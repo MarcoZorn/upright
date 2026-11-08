@@ -1,5 +1,7 @@
 // NEAT baseline on the same body, task and fitness as ES, using the engine from my neat-from-scratch repo.
 //   node neat.mjs --run runs/neat [--fresh] [--gens N] [--pop 256] [--workers N] [--stage 0]
+//     [--initWeight 1 --weightStep 0.4 --pWeight 0.8 --pWeightReplace 0.1]  mutation scale; the vendored defaults suit
+//     small game nets, not 2370 connections (each mutation moves ~1900 weights), so these are swept (docs/DEVLOG.md)
 // Logs episodes used per generation, so compare.mjs can put it on the same x axis as ES.
 import { Worker } from 'node:worker_threads';
 import fs from 'node:fs';
@@ -20,7 +22,8 @@ if (args.fresh) for (const f of [stateFile, logFile]) fs.rmSync(f, { force: true
 
 const pop = fs.existsSync(stateFile)
   ? Population.fromJSON(JSON.parse(fs.readFileSync(stateFile, 'utf8')))
-  : new Population(OBS_SIZE, DOFS.length, { popSize: +(args.pop ?? 256) }, +(args.seed ?? 1));
+  : new Population(OBS_SIZE, DOFS.length, { popSize: +(args.pop ?? 256),
+    ...Object.fromEntries(['initWeight', 'weightStep', 'pWeight', 'pWeightReplace'].filter((k) => k in args).map((k) => [k, +args[k]])) }, +(args.seed ?? 1));
 let episodes = fs.existsSync(logFile) ? JSON.parse(fs.readFileSync(logFile, 'utf8').trim().split('\n').at(-1)).episodes : 0;
 
 const dummy = new SharedArrayBuffer(OBS_SIZE * 8);
