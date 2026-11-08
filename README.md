@@ -56,6 +56,9 @@ Real rigid-body physics ([Rapier](https://rapier.rs)'s cross-platform determinis
   - click a body part to kick it
 - [ ] Pass the jog stage with pushes on, then the run stage
 - [x] **Pre-registered Earth gate: failed.** 5 of 10 training seeds produced a walker that passes; 8 were needed. Under the pre-registered kill criterion, the Moon/Mars experiment doesn't run with this recipe. Tally and failure modes in [GATE.md](docs/GATE.md).
+- [ ] **v2, pre-registered ([PREREG-V2.md](docs/PREREG-V2.md)), training now on seeds 11–20.** Two of the five failures were a *help trap*: the brain learned to lean on the helping hand within a few generations, and the annealing rule then never fired again. v2 changes only that: the help also fades on a clock.
+
+  ![helping-hand strength per seed in the shuffle stage](docs/assist.svg)
 - [ ] NEAT baseline at the same budget (`neat.mjs` is written but hasn't been run yet)
 
 ## Run it
@@ -84,8 +87,8 @@ src/es.js     evolution strategies
 src/gait.js   gait instruments
 src/ghosts.js rebuilds a generation's ES siblings exactly, for the viewer
 src/trig.js   sin/cos from + and * only (same bits in every JS engine)
-train.mjs     ES training, neat.mjs NEAT baseline, compare.mjs progress chart
-tools/        frame capture -> gif/mp4 for clips
+train.mjs     ES training, neat.mjs NEAT baseline, compare.mjs progress chart, gate.mjs the Earth gate
+tools/        status.mjs (one line per run), assist.mjs (help chart), v2.sh (v2 seeds), clip capture
 viewer.js     three.js viewer
 test.mjs      checks
 ```
