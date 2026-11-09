@@ -79,12 +79,23 @@ const options = [['zero', 'zero: holds the rest pose'], ...[1, 2, 3, 4, 5].map((
 if (index.length) options.unshift(['trained', 'trained (pick generation)']);
 const STAGE_SPEED = { stand: 0, shuffle: 0.4, walk: 1, jog: 2, run: 3 };
 for (const [v, t] of options) select.add(new Option(t, v));
-const gen = $('gen');
-gen.max = Math.max(0, index.length - 1);
-gen.value = gen.max;
+// one run at a time on the generation slider; the default is the run that got furthest (latest on ties)
+const STAGE_ORDER = Object.keys(STAGE_SPEED), runSel = $('run'), gen = $('gen');
+const runs = [...new Set(index.map((e) => e.run))];
+const reach = (r) => Math.max(...index.filter((e) => e.run === r).map((e) => STAGE_ORDER.indexOf(e.stage)));
+for (const r of runs) runSel.add(new Option(`${r} · reached ${STAGE_ORDER[reach(r)] ?? '?'}`, r));
+runSel.value = runs.reduce((best, r) => (reach(r) >= reach(best) ? r : best), runs[0]);
+let entries = [];
+function pickRun() {
+  entries = index.filter((e) => e.run === runSel.value);
+  gen.max = Math.max(0, entries.length - 1);
+  gen.value = gen.max;
+}
+if (runs.length) pickRun();
+const current = () => entries[+gen.value];
 const cache = new Map();
-async function loadIndexed(i) {
-  const e = index[i];
+async function loadIndexed() {
+  const e = current();
   if (!cache.has(e.file)) cache.set(e.file, deserialize(await (await fetch('brains/' + e.file)).text()));
   return cache.get(e.file);
 }
@@ -107,7 +118,7 @@ function buildGhosts() {
   });
 }
 function prepareGhosts() {
-  const e = select.value === 'trained' ? index[+gen.value] : null;
+  const e = select.value === 'trained' ? current() : null;
   $('ghosts').disabled = !e?.es;
   ghostSibs = null;
   if (ghostsOn && e?.es) ghostSibs = siblings(brain, e.gen, e.es, 8);
@@ -129,12 +140,12 @@ function reset() {
 
 async function pickBrain() {
   const v = select.value;
-  gen.disabled = v !== 'trained';
+  gen.disabled = runSel.disabled = v !== 'trained';
   if (v === 'zero') { brain = zeroBrain(); brainName = 'zero'; }
   else if (v.startsWith('random')) { brain = randomBrain(+v.split(':')[1]); brainName = v; }
   else if (v === 'trained') {
-    brain = await loadIndexed(+gen.value);
-    const e = index[+gen.value];
+    brain = await loadIndexed();
+    const e = current();
     brainName = `gen ${e.gen}`;
     $('genLabel').textContent = `${e.gen}${e.stage ? ' · ' + e.stage : ''}`;
     setTarget(e.proof?.target ?? STAGE_SPEED[e.stage] ?? 0);
@@ -224,6 +235,7 @@ const speed = () => 10 ** +$('speed').value;
 $('speed').oninput = () => { $('speedLabel').textContent = speed().toFixed(2) + '×'; };
 select.onchange = pickBrain;
 gen.oninput = pickBrain;
+runSel.onchange = () => { pickRun(); pickBrain(); };
 $('reset').onclick = reset;
 $('grav').onchange = reset;
 $('ghosts').onclick = () => {
