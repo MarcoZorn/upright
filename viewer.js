@@ -218,8 +218,9 @@ function drawChart(markGen) {
   const n = log.length, fx = (i) => pad + (i / Math.max(1, n - 1)) * (W - 2 * pad);
   const fits = log.map((l) => l.fitness), lo = Math.min(...fits), hi = Math.max(...fits);
   const fy = (v) => H - pad - ((v - lo) / (hi - lo || 1)) * (H - 2 * pad);
-  const colors = { stand: '#f2a65a22', walk: '#7fb7a422', run: '#c97b9a22' };
-  log.forEach((l, i) => { g.fillStyle = colors[l.stage] ?? '#ffffff11'; const h = l.upFrac * (H - 2 * pad); g.fillRect(fx(i) - 1, H - pad - h, Math.max(2, W / n), h); });
+  const colors = { stand: '#f2a65a22', shuffle: '#e9e4da1a', walk: '#7fb7a422', jog: '#9aa7e022', run: '#c97b9a22' };
+  // shade = upright fraction of the brain on its own: while the helping hand is on, that's the bare evals
+  log.forEach((l, i) => { g.fillStyle = colors[l.stage] ?? '#ffffff11'; const h = (l.bare ?? l).upFrac * (H - 2 * pad); g.fillRect(fx(i) - 1, H - pad - h, Math.max(2, W / n), h); });
   g.strokeStyle = '#f2a65a'; g.lineWidth = 2; g.beginPath();
   log.forEach((l, i) => (i ? g.lineTo(fx(i), fy(l.fitness)) : g.moveTo(fx(i), fy(l.fitness))));
   g.stroke();
