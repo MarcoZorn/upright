@@ -296,3 +296,10 @@ v2 ([PREREG-V2.md](PREREG-V2.md)) adds a clock: the help can't be stronger than 
 Comparing against that would make ES look good for free. The mutation scale is now set by flags (`--initWeight --weightStep --pWeight --pWeightReplace`). With `--initWeight 0 --weightStep 0.02 --pWeightReplace 0` the first generation stands 100% of the time, like ES at gen 0. The baseline gets a small sweep of these before any comparison is claimed. That sweep waits for the v2 seeds, because both together would go over the 70% CPU budget.
 
 NEAT now follows the same curriculum as ES (`neat.mjs`): same stages and graduation tests, a candidate re-checked on 8 fresh seeds before it graduates, and the v2 help clock in shuffle and walk. It has the clock only, because train.mjs's performance rule needs bare evals that NEAT doesn't run. `tools/neat-sweep.sh` queues the mutation-scale sweep (`--weightStep` 0.005 / 0.02 / 0.05, 100 gens each) to start when the v2 seeds are done.
+
+## 2026-11-09: reboot, a resume bug, and CI
+
+- **Reboot and resume bug.** The machine rebooted mid-run, and the queue script restarted V11–V13 with their full launch flags. Flags on the command line override a run's saved state, so σ and the helping hand were reset for two generations per run. Recorded as a deviation in [PREREG-V2.md](PREREG-V2.md). The script now passes recipe flags only on a fresh start, and `train.mjs` prints any saved setting a flag overrides.
+- **CI.** `test.mjs` now pins the zero-brain trajectory hash and replays every published walk graduate against its proof hash. CI runs it on GitHub's machines under Node and Bun on every push. First run: all match, so determinism holds across machines as well as JS engines.
+- **Viewer.** It now has a run picker. The training chart shades the *unassisted* upright fraction while the helping hand is on, and colours every stage.
+- **Watching.** V11 and V13 now get no help at all but stand still in the shuffle stage (0.01 m/s). That is the old stand-still optimum, not the help trap, and the v2 clock doesn't address it. Their outcome goes in the v2 tally, whatever it is.
