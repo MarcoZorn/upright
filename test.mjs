@@ -180,5 +180,18 @@ if (!isMainThread) {
     assert.equal(other, `${rollout(R, b, { seconds: 5, stopOnFall: false }).hash} ${episode(R, b, { stage: 2, seed: 9 }).fitness}`);
   });
 
+  await check('trajectories match the pinned hashes: zero brain, and every published walk graduate replays its proof', () => {
+    // pinned: a change here means physics or senses changed, and every published brain's proof breaks with it
+    assert.equal(rollout(R, zeroBrain(), { seconds: 10, stopOnFall: false }).hash.toString(16), 'b3c4fa14');
+    const index = JSON.parse(fs.readFileSync('brains/index.json', 'utf8'));
+    const grads = index.filter((e) => e.stage === 'walk' && e.graduated && e.proof);
+    assert.ok(grads.length >= 5);
+    for (const e of grads) {
+      const b = deserialize(fs.readFileSync(`brains/${e.file}`, 'utf8'));
+      const h = rollout(R, b, { seconds: 10, targetSpeed: e.proof.target, stopOnFall: false, gravity: e.proof.gravity }).hash.toString(16);
+      assert.equal(h, e.proof.hash10, `${e.file} no longer replays its proof`);
+    }
+  });
+
   console.log(`zero-brain 10 s trajectory hash ${rollout(R, zeroBrain(), { seconds: 10, stopOnFall: false }).hash.toString(16)} (the viewer shows the same number)`);
 }

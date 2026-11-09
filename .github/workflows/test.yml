@@ -1,0 +1,14 @@
+name: test
+# Runs the suite on GitHub's machines: besides the unit checks, this is a cross-machine determinism test.
+# Every published walk graduate must replay its proof hash here exactly as it did on the training machine.
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 'lts/*', cache: npm }
+      - uses: oven-sh/setup-bun@v2   # second JS engine (JavaScriptCore) for the cross-engine check
+      - run: npm ci
+      - run: node test.mjs
