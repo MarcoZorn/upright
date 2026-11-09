@@ -59,6 +59,10 @@ if (saved) {
   const explicit = Object.fromEntries(Object.keys(args).filter((k) => k in cfg).map((k) => [k, cfg[k]]));
   Object.assign(cfg, s.cfg, { gens: cfg.gens, workers: cfg.workers, quiet: cfg.quiet }, explicit);
   log(`resumed ${dir} at gen ${st.gen}, stage ${STAGES[st.stage].name}`);
+  // say so when a flag overrides a saved setting: re-passing a run's launch flags silently reset its adapted
+  // sigma and helping hand after a reboot (docs/PREREG-V2.md, 2026-11-09)
+  const changed = Object.keys(explicit).filter((k) => !['run', 'gens', 'workers', 'quiet', 'fresh'].includes(k) && k in s.cfg && s.cfg[k] !== explicit[k]);
+  for (const k of changed) log(`  override ${k}: ${s.cfg[k]} -> ${explicit[k]}`);
 } else if (args.init) {
   // start from a saved brain (e.g. to restart a run before it went wrong); obs-norm stats rebuilt from its mean/std
   const b = deserialize(fs.readFileSync(args.init, 'utf8'));
