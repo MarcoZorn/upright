@@ -25,3 +25,11 @@ Everything else is exactly the v1 recipe as run on seeds 3–10: 64×64 MLP, no 
 
 ## Correction (same day, before any result)
 The first launch used a starting σ of 0.03 instead of v1's 0.01 (the line above originally said "σ 0.03"). It was stopped about 10 generations into the stand stage, the runs were deleted, and all ten seeds restarted with 0.01. Nothing beyond those first log lines had been seen.
+
+## Deviation (2026-11-09): two generations with reset settings after a reboot
+The machine restarted while V11–V13 were in shuffle/walk (gens ~144–158). `tools/v2.sh` restarted them with the full recipe flags, and command-line flags override a run's saved state, so for **two generations per run** σ went back to its starting 0.01 (it had adapted to 0.03) and the helping hand to 1.0 (capped by the clock: 0.73 for V12, 0.10–0.12 for V11 and V13):
+- V11: gens 156–157
+- V12: gens 158–159
+- V13: gens 144–145
+
+Those generations' updates are kept (there is no way to undo them short of restarting the runs). The saved σ and help were set back to their pre-reboot values, and `v2.sh` now passes recipe flags only on a fresh start. This happened before any of these runs graduated walk. Two generations of extra help are well inside what the clock allows anyway, so I don't expect it to matter, but it is recorded here so it can be checked.
