@@ -20,8 +20,9 @@ for (const dir of process.argv.slice(2)) {
   const grads = logs.flatMap((l, i) => (i && l.stage !== logs[i - 1].stage ? [`${logs[i - 1].stage}@${logs[i - 1].gen}`] : []));
   // finished (graduated walk with --until 3, or budget used), still going, or not running at all (a reboot)
   const secs = logs.slice(-10).reduce((t, l) => t + l.secs, 0) / Math.min(10, logs.length);
-  const state = last.stage === 'jog' || last.gen >= 999 ? 'done' : age > Math.max(300, 5 * secs) ? 'STALLED' : `≤${((999 - last.gen) * secs / 3600).toFixed(1)}h left`;
+  const budget = last.sigma === undefined ? 99 : 999; // NEAT logs have no sigma; the neat sweep runs 100 gens
+  const state = last.stage === 'jog' || last.gen >= budget ? 'done' : age > Math.max(300, 5 * secs) ? 'STALLED' : `≤${((budget - last.gen) * secs / 3600).toFixed(1)}h left`;
   rows.push(`${path.basename(dir).padEnd(5)} ${state.padEnd(11)} gen ${String(last.gen).padStart(4)}  ${last.stage.padEnd(7)} ${String(since).padStart(4)} in stage  ` +
-    `assist ${(last.assist ?? 0).toFixed(3)}  bare up ${pct(bare.upFrac)} ${bare.speed.toFixed(2)} m/s  σ ${last.sigma.toFixed(4)}  ${grads.join(' ')}`);
+    `assist ${(last.assist ?? 0).toFixed(3)}  bare up ${pct(bare.upFrac)} ${bare.speed.toFixed(2)} m/s  ${last.sigma !== undefined ? `σ ${last.sigma.toFixed(4)}` : `neat ${last.nodes}n/${last.conns}c`}  ${grads.join(' ')}`);
 }
 console.log(rows.join('\n') || 'no runs with logs');
