@@ -272,7 +272,7 @@ Seed 6 runs to its budget, and seeds 8–10 are being trained so the reliability
 | pass | 3, 4, 5, 8, 9 (walk graduates at gens 296–746, 0.89–0.90 m/s, 10/10 gate seeds each) |
 | fail | 1, 2 (threshold flaw), 6, 10 (help trap), 7 (stand stage) |
 
-**5 of 10.** Seed 10 fell into the same help trap as seed 6: the assist froze at 0.531 (0.9⁶) around gen 160 and never moved again. At gen 1000, helped, it was upright 91% of the time at 0.09 m/s; bare, 4%. Two of ten seeds hitting the identical trap at the identical assist level makes the fix for a v2 recipe concrete: decay the help on a schedule too, not only on performance.
+**5 of 10.** Seed 10 fell into the same help trap as seed 6: the assist froze at 0.531 (0.9⁶) around gen 123, 7 generations into shuffle, and never moved again. At gen 999, helped, it was upright 84% of the time at 0.09 m/s; bare, 3%. *(Corrected 2026-11-10: this first said gen 160 and 91%, but 91% was the perturbed siblings' upright fraction, not the brain's.)* Two of ten seeds hitting the identical trap at the identical assist level makes the fix for a v2 recipe concrete: decay the help on a schedule too, not only on performance.
 
 Every seed that graduated walk under the 0.9 m/s threshold went on to pass the gate. The recipe's weak points are getting there (stand, shuffle with help), not walking once it gets there.
 
