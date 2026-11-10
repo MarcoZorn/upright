@@ -95,14 +95,20 @@ if (!isMainThread) {
     assert.ok(after > before + 15, `${before.toFixed(1)} -> ${after.toFixed(1)}`);
   });
 
-  await check('training checkpoint -> resume matches an uninterrupted run', () => {
+  await check('training checkpoint -> resume matches an uninterrupted run, even after a crash mid-log', () => {
     const run = (dir, ...a) => execFileSync('node', ['train.mjs', '--run', dir, '--quiet', '--workers', '2', '--pairs', '3',
       '--evalSeeds', '1', '--noise', '1000000', '--saveEvery', '1000', '--publishEvery', '100000', '--brains', 'tmp/test-brains', ...a]);
     const tmp = 'tmp/test-runs';
     fs.rmSync(tmp, { recursive: true, force: true });
     run(`${tmp}/straight`, '--fresh', '--gens', '4');
     run(`${tmp}/resumed`, '--fresh', '--gens', '2');
+    // what a hard crash leaves: a log line past the checkpoint, then a zero-filled tail
+    const log = `${tmp}/resumed/log.jsonl`;
+    fs.appendFileSync(log, JSON.stringify({ gen: 2, fitness: -1 }) + '\n\0\0\0\0');
     run(`${tmp}/resumed`, '--gens', '2');
+    const lines = (f) => fs.readFileSync(f, 'utf8').trim().split('\n').map((l) => JSON.parse(l));
+    assert.deepEqual(lines(log).map((l) => l.gen), [0, 1, 2, 3]);
+    assert.deepEqual(lines(log).map((l) => l.fitness), lines(`${tmp}/straight/log.jsonl`).map((l) => l.fitness));
     const a = JSON.parse(fs.readFileSync(`${tmp}/straight/state.json`)), b = JSON.parse(fs.readFileSync(`${tmp}/resumed/state.json`));
     assert.equal(a.gen, 4);
     assert.equal(b.gen, 4);

@@ -63,6 +63,18 @@ if (saved) {
   // sigma and helping hand after a reboot (docs/PREREG-V2.md, 2026-11-09)
   const changed = Object.keys(explicit).filter((k) => !['run', 'gens', 'workers', 'quiet', 'fresh'].includes(k) && k in s.cfg && s.cfg[k] !== explicit[k]);
   for (const k of changed) log(`  override ${k}: ${s.cfg[k]} -> ${explicit[k]}`);
+  // The log runs ahead of the checkpoint (saved every saveEvery gens), and a crash can leave a torn or
+  // zero-filled last line (V11, V13 on 2026-11-10). Keep whole lines from before this checkpoint only: the gens
+  // after it are about to be rerun, bit-identically, and would otherwise be logged twice.
+  if (fs.existsSync(logFile)) {
+    const lines = fs.readFileSync(logFile, 'utf8').split('\n').filter((l) => l.trim());
+    const keep = lines.filter((l) => { try { return JSON.parse(l).gen < st.gen; } catch { return false; } });
+    if (keep.length < lines.length) {
+      fs.writeFileSync(logFile + '.tmp', keep.map((l) => l + '\n').join(''));
+      fs.renameSync(logFile + '.tmp', logFile);
+      log(`  log trimmed to the checkpoint: ${lines.length - keep.length} line(s) dropped`);
+    }
+  }
 } else if (args.init) {
   // start from a saved brain (e.g. to restart a run before it went wrong); obs-norm stats rebuilt from its mean/std
   const b = deserialize(fs.readFileSync(args.init, 'utf8'));
