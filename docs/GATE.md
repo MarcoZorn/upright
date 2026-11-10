@@ -18,6 +18,10 @@ The gate ([PREREG.md](PREREG.md), amendments [2](PREREG-AMENDMENT-2.md) and [3](
 **Final (2026-11-07): 5 pass, 5 fail. The gate is not met (needs 8). Under the pre-registered kill criterion, the Moon/Mars experiment does not run with this training recipe.** The recipe produces a gate-quality walker on 5 of 10 seeds. Failure modes: threshold flaw (1, 2), help trap (6, 10), never passed the stand stage (7).
 Seeds 1 and 2 graduated under the old 0.8 m/s walk threshold (see amendment 3); seeds 3 and 4 under 0.9.
 
+![each v1 seed through the curriculum, with its gate result](seeds.svg)
+
+`node tools/seeds.mjs runs/Y runs/Z runs/S3 … runs/S10` redraws it from the logs and this table.
+
 ## v2 (clocked help, [PREREG-V2.md](PREREG-V2.md))
 
 Same gate, same 8-of-10 rule, seeds 11–20. Filled in as runs finish; reproduce with `node gate.mjs runs/V11 …`.
