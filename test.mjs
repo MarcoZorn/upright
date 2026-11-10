@@ -125,6 +125,15 @@ if (!isMainThread) {
     assert.equal(assistCap(5000, 0), 1); // no clock: v1 behaviour
   });
 
+  await check('the v1 failure modes are named from the training logs alone', async () => {
+    const { readLog, diagnose } = await import('./tools/runlog.mjs');
+    const mode = (r) => diagnose(readLog(`runs/${r}`).logs.filter((l) => l.gen < 1000));
+    assert.equal(mode('S6'), 'help trap, leans on the help');
+    assert.equal(mode('S10'), 'help trap, leans on the help');
+    assert.equal(mode('S7'), 'never balances well enough to leave stand');
+    for (const r of ['S3', 'S4', 'S5', 'S8', 'S9']) assert.equal(mode(r), '', `${r} walked`);
+  });
+
   await check('gait instruments classify hand-written footfalls', async () => {
     const { analyzeGait } = await import('./src/gait.js');
     const seq = (pattern, reps) => pattern.repeat(reps).split('').map(Number);
