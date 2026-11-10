@@ -28,7 +28,18 @@ const pop = saved
   ? Population.fromJSON(saved)
   : new Population(OBS_SIZE, DOFS.length, { popSize: +(args.pop ?? 256),
     ...Object.fromEntries(['initWeight', 'weightStep', 'pWeight', 'pWeightReplace'].filter((k) => k in args).map((k) => [k, +args[k]])) }, +(args.seed ?? 1));
-let episodes = fs.existsSync(logFile) ? JSON.parse(fs.readFileSync(logFile, 'utf8').trim().split('\n').at(-1)).episodes : 0;
+// As in train.mjs: the log can run ahead of the state (saved every 10 gens) and a crash can leave a torn last
+// line. Keep whole lines from before the saved generation; the rest are rerun.
+let episodes = 0;
+if (fs.existsSync(logFile)) {
+  const lines = fs.readFileSync(logFile, 'utf8').split('\n').filter((l) => l.trim());
+  const keep = lines.map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter((m) => m && m.gen < pop.generation);
+  if (keep.length < lines.length) {
+    fs.writeFileSync(logFile + '.tmp', keep.map((m) => JSON.stringify(m) + '\n').join(''));
+    fs.renameSync(logFile + '.tmp', logFile);
+  }
+  episodes = keep.at(-1)?.episodes ?? 0;
+}
 
 const dummy = new SharedArrayBuffer(OBS_SIZE * 8);
 const workers = Array.from({ length: workersN }, () => new Worker(new URL('./src/worker.mjs', import.meta.url),
