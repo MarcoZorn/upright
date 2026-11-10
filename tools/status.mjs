@@ -22,7 +22,13 @@ for (const dir of process.argv.slice(2)) {
   const secs = logs.slice(-10).reduce((t, l) => t + l.secs, 0) / Math.min(10, logs.length);
   const budget = last.sigma === undefined ? 99 : 999; // NEAT logs have no sigma; the neat sweep runs 100 gens
   const state = last.stage === 'jog' || last.gen >= budget ? 'done' : age > Math.max(300, 5 * secs) ? 'STALLED' : `≤${((budget - last.gen) * secs / 3600).toFixed(1)}h left`;
+  // the failure modes seen in v1 (docs/GATE.md), named once a run has spent 200+ gens in one stage without leaving it
+  const window = logs.slice(-50), stuck = since >= 200 && last.stage !== 'jog';
+  const bareSpeed = (l) => (l.bare ? l.bare.speed : l.speed[target]); // unassisted speed at the stage's main target
+  const mode = !stuck ? '' : last.stage === 'stand' ? '  [stuck: never balances well enough to leave stand]'
+    : window.every((l) => (l.assist ?? 0) > 0) ? '  [stuck: help trap, leans on the help]'
+    : window.every((l) => bareSpeed(l) < 0.1) ? '  [stuck: stands still without help]' : '  [stuck: slow progress]';
   rows.push(`${path.basename(dir).padEnd(5)} ${state.padEnd(11)} gen ${String(last.gen).padStart(4)}  ${last.stage.padEnd(7)} ${String(since).padStart(4)} in stage  ` +
-    `assist ${(last.assist ?? 0).toFixed(3)}  bare up ${pct(bare.upFrac)} ${bare.speed.toFixed(2)} m/s  ${last.sigma !== undefined ? `σ ${last.sigma.toFixed(4)}` : `neat ${last.nodes}n/${last.conns}c`}  ${grads.join(' ')}`);
+    `assist ${(last.assist ?? 0).toFixed(3)}  bare up ${pct(bare.upFrac)} ${bare.speed.toFixed(2)} m/s  ${last.sigma !== undefined ? `σ ${last.sigma.toFixed(4)}` : `neat ${last.nodes}n/${last.conns}c`}  ${grads.join(' ')}${mode}`);
 }
 console.log(rows.join('\n') || 'no runs with logs');
