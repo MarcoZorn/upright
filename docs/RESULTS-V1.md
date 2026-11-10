@@ -23,7 +23,7 @@
 
 | | seeds | walk graduate | gate |
 |---|---|---|---|
-| pass | 3, 4, 5, 8, 9 | gens 296–746 | 10/10 each, 0.89–0.90 m/s |
+| pass | 3, 4, 5, 8, 9 | gens 295–745 | 10/10 each, 0.89–0.90 m/s |
 | fail: threshold flaw | 1, 2 | gens 714, 559 | 5/10 each, 0.80 m/s |
 | fail: help trap | 6, 10 | none in 1000 gens | – |
 | fail: never left stand | 7 | none in 1000 gens | – |

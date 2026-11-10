@@ -6,16 +6,17 @@ The gate ([PREREG.md](PREREG.md), amendments [2](PREREG-AMENDMENT-2.md) and [3](
 |---|---|---|---|---|---|
 | 1 | Y | gen 714 | fail | 5/10 | 0.80 |
 | 2 | Z | gen 559 | fail | 5/10 | 0.80 |
-| 3 | S3 | gen 459 | **pass** | 10/10 | 0.90 |
-| 4 | S4 | gen 335 | **pass** | 10/10 | 0.90 |
-| 5 | S5 | gen 746 | **pass** | 10/10 | 0.89 |
-| 6 | S6 | none: help trap, still in shuffle at gen 1000 (see devlog) | fail (budget) | 0/10 | 0.00 |
-| 7 | S7 | none: still in the stand stage at gen 1000 | fail (budget) | 0/10 | -0.01 |
-| 8 | S8 | gen 296 | **pass** | 10/10 | 0.89 |
-| 9 | S9 | gen 481 | **pass** | 10/10 | 0.89 |
-| 10 | S10 | none: help trap, still in shuffle at gen 1000 | fail (budget) | 0/10 | 0.00 |
+| 3 | S3 | gen 458 | **pass** | 10/10 | 0.90 |
+| 4 | S4 | gen 334 | **pass** | 10/10 | 0.90 |
+| 5 | S5 | gen 745 | **pass** | 10/10 | 0.89 |
+| 6 | S6 | none: help trap, leans on the help at gen 1000 | fail (budget) | 0/10 | – |
+| 7 | S7 | none: never balances well enough to leave stand at gen 1000 | fail (budget) | 0/10 | – |
+| 8 | S8 | gen 295 | **pass** | 10/10 | 0.89 |
+| 9 | S9 | gen 480 | **pass** | 10/10 | 0.89 |
+| 10 | S10 | none: help trap, leans on the help at gen 1000 | fail (budget) | 0/10 | – |
 
 **Final (2026-11-07): 5 pass, 5 fail. The gate is not met (needs 8). Under the pre-registered kill criterion, the Moon/Mars experiment does not run with this training recipe.** The recipe produces a gate-quality walker on 5 of 10 seeds. Failure modes: threshold flaw (1, 2), help trap (6, 10), never passed the stand stage (7).
+Rows are written by `node tools/tally.mjs runs/<run> …` from the gate itself. *(2026-11-10: the hand-written rows for seeds 3, 4, 5, 8 and 9 gave the graduate's file number, which is one past its generation; e.g. S3's graduate is `S3-gen00459.json`, evaluated at gen 458. Results unchanged.)*
 Seeds 1 and 2 graduated under the old 0.8 m/s walk threshold (see amendment 3); seeds 3 and 4 under 0.9.
 
 ![each v1 seed through the curriculum, with its gate result](seeds.svg)
