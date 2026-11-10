@@ -303,3 +303,13 @@ NEAT now follows the same curriculum as ES (`neat.mjs`): same stages and graduat
 - **CI.** `test.mjs` now pins the zero-brain trajectory hash and replays every published walk graduate against its proof hash. CI runs it on GitHub's machines under Node and Bun on every push. First run: all match, so determinism holds across machines as well as JS engines.
 - **Viewer.** It now has a run picker. The training chart shades the *unassisted* upright fraction while the helping hand is on, and colours every stage.
 - **Watching.** V11 and V13 now get no help at all but stand still in the shuffle stage (0.01 m/s). That is the old stand-still optimum, not the help trap, and the v2 clock doesn't address it. Their outcome goes in the v2 tally, whatever it is.
+
+## 2026-11-10: crash-proof resume
+
+The machine went down again, for about 18 hours this time. The crash left two problems:
+- a zero-filled last line in two logs (`\0\0\0…`, what the filesystem leaves after an unclean shutdown)
+- logs a few generations ahead of their checkpoints (saved every 10 gens), so the rerun generations would have been logged twice
+
+Both `train.mjs` and `neat.mjs` now trim the log to the checkpoint on resume and drop torn lines. A hard-kill test (SIGKILL mid-run, then resume) reran the lost generations bit-identically to the ones the kill cut off. The resume test in `test.mjs` now also appends crash leftovers before resuming and checks that the log comes out identical to an uninterrupted run's. `tools/resume.sh` restarts whichever experiment queue isn't running and leaves running ones alone.
+
+v2 so far: V12 walks unassisted at 0.69 m/s; V13 left shuffle at gen 185 and walks at 0.49 m/s; V11 has stood still in shuffle without help for 240 generations.

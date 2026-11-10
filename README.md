@@ -72,6 +72,9 @@ node stand.mjs          # headless smoke run
 node train.mjs --run runs/x --hidden 64 --cpg   # train (resumes; Ctrl-C checkpoints)
 node neat.mjs --run runs/neat --stage 2         # NEAT baseline (not run yet)
 node compare.mjs runs/W:W runs/Y:Y              # progress chart -> docs/progress.svg
+node gate.mjs runs/S3 runs/V11              # the pre-registered Earth gate on a run's walk graduate
+node tools/status.mjs runs/V1*              # one line per run: stage, help, unassisted speed, time left
+tools/resume.sh                             # after a reboot: restart whichever experiment queue stopped
 python3 -m http.server  # then open http://localhost:8000
 ```
 
