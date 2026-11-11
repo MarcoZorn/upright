@@ -125,6 +125,17 @@ if (!isMainThread) {
     assert.equal(assistCap(5000, 0), 1); // no clock: v1 behaviour
   });
 
+  await check('every graduate row of the published gate tally (docs/GATE.md) is what the gate gives today', async () => {
+    const { gate, graduate } = await import('./gate.mjs');
+    const rows = [...fs.readFileSync('docs/GATE.md', 'utf8').matchAll(/^\| \d+ \| (\w+) \| gen (\d+) \| \**(pass|fail)\** \| (\d+)\/10 \| ([\d.]+) \|$/gm)];
+    assert.ok(rows.length >= 7, `found ${rows.length} graduate rows`);
+    for (const [, run, gen, res, ok, speed] of rows) {
+      const grad = graduate(`runs/${run}`), g = gate(grad.brain);
+      assert.equal(grad.gen, +gen, `${run} graduate gen`);
+      assert.deepEqual([g.pass ? 'pass' : 'fail', g.ok, g.speed.toFixed(2)], [res, +ok, speed], `${run} gate result`);
+    }
+  });
+
   await check('the v1 failure modes are named from the training logs alone', async () => {
     const { readLog, diagnose } = await import('./tools/runlog.mjs');
     const mode = (r) => diagnose(readLog(`runs/${r}`).logs.filter((l) => l.gen < 1000));

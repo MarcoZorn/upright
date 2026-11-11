@@ -313,3 +313,14 @@ The machine went down again, for about 18 hours this time. The crash left two pr
 Both `train.mjs` and `neat.mjs` now trim the log to the checkpoint on resume and drop torn lines. A hard-kill test (SIGKILL mid-run, then resume) reran the lost generations bit-identically to the ones the kill cut off. The resume test in `test.mjs` now also appends crash leftovers before resuming and checks that the log comes out identical to an uninterrupted run's. `tools/resume.sh` restarts whichever experiment queue isn't running and leaves running ones alone.
 
 v2 so far: V12 walks unassisted at 0.69 m/s; V13 left shuffle at gen 185 and walks at 0.49 m/s; V11 has stood still in shuffle without help for 240 generations.
+
+## 2026-11-11: where the time goes, and a tested results table
+
+The machine is switched off at night, so v2 advances only a few hours a day; `tools/resume.sh` picks it up each morning. I profiled 12 walk episodes to see whether anything could be sped up legitimately:
+- 88% of the time is Rapier's WASM solver
+- 2.5% is the JS glue around it
+- about 1.5% is the brain, senses and reward together
+
+The only big levers are solver iterations and the timestep, and both change the physics: every published proof hash would break and the pre-registered recipe would no longer be the one being run. So no speedup; the seeds take as long as they take.
+
+CI now also checks the published results: for every graduate row in [GATE.md](GATE.md) it re-runs the gate and compares the generation, the pass/fail, the seed count and the mean speed.
