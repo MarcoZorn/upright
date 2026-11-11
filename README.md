@@ -4,7 +4,7 @@ A 3D human ragdoll that learns to stand, walk and run by neuroevolution, with no
 
 [![test](https://github.com/MarcoZorn/upright/actions/workflows/test.yml/badge.svg)](https://github.com/MarcoZorn/upright/actions/workflows/test.yml): every push replays all published walk brains on GitHub's machines, in Node and Bun, and checks each against its training hash.
 
-**[Open the viewer](https://marcozorn.github.io/upright/)** · [v1 results](docs/RESULTS-V1.md) · [Devlog](docs/DEVLOG.md) · [Training plan](docs/PLAN.md)
+**[Open the viewer](https://marcozorn.github.io/upright/)** · [v1 results](docs/RESULTS-V1.md) · [Devlog](docs/DEVLOG.md) · [Original plan](docs/PLAN.md)
 
 ![Run Y, generation 714: the brain that passed the walk stage, replayed in Chrome bit-identical to training](docs/walk.gif)
 

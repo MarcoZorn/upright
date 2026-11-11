@@ -1,6 +1,8 @@
-# Training plan (proposal, not written yet)
+# Training plan (the original proposal)
 
-Status: the body, senses, brain, viewer and determinism checks are in. Nothing below exists yet.
+> **Historical.** This is the plan as written before any training. What was built differs in places: five stages instead of three, a helping hand, σ starting at 0.01, the reward in `src/task.js`. For the setup actually used, see [RESULTS-V1.md](RESULTS-V1.md#setup); for how it got there, the [devlog](DEVLOG.md).
+
+Status at the time: the body, senses, brain, viewer and determinism checks were in. Nothing below existed yet.
 
 ## Budget
 
