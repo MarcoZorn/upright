@@ -75,6 +75,7 @@ node compare.mjs runs/W:W runs/Y:Y              # progress chart -> docs/progres
 node gate.mjs runs/S3 runs/V11              # the pre-registered Earth gate on a run's walk graduate
 node tools/status.mjs runs/V1*              # one line per run: stage, help, unassisted speed, time left
 tools/resume.sh                             # after a reboot: restart whichever experiment queue stopped
+tools/daily.sh                              # resume + write finished v2 seeds' gate results into GATE.md + status
 python3 -m http.server  # then open http://localhost:8000
 ```
 
