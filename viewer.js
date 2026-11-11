@@ -83,7 +83,13 @@ for (const [v, t] of options) select.add(new Option(t, v));
 const STAGE_ORDER = Object.keys(STAGE_SPEED), runSel = $('run'), gen = $('gen');
 const runs = [...new Set(index.map((e) => e.run))];
 const reach = (r) => Math.max(...index.filter((e) => e.run === r).map((e) => STAGE_ORDER.indexOf(e.stage)));
-for (const r of runs) runSel.add(new Option(`${r} · reached ${STAGE_ORDER[reach(r)] ?? '?'}`, r));
+// the pre-registered gate result per run, read from the published tally (docs/GATE.md) so the page can't disagree with it
+const gateRes = new Map();
+try {
+  const md = await (await fetch('docs/GATE.md')).text();
+  for (const m of md.matchAll(/^\| \d+ \| (\w+) \|[^|]*\| \**(pass|fail)[^|]*\| (\d+\/10)/gm)) gateRes.set(m[1], `gate ${m[2]} ${m[3]}`);
+} catch { /* tally not served: labels just omit it */ }
+for (const r of runs) runSel.add(new Option(`${r} · reached ${STAGE_ORDER[reach(r)] ?? '?'}${gateRes.has(r) ? ' · ' + gateRes.get(r) : ''}`, r));
 runSel.value = runs.reduce((best, r) => (reach(r) >= reach(best) ? r : best), runs[0]);
 let entries = [];
 function pickRun() {
