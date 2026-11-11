@@ -25,5 +25,8 @@ export function diagnose(logs) {
   if (last.stage === 'stand') return 'never balances well enough to leave stand';
   if (recent.every((l) => (l.assist ?? 0) > 0)) return 'help trap, leans on the help';
   if (recent.every((l) => bareSpeed(l) < 0.1)) return 'stands still without help';
+  // long in the stage but still getting faster on its own (V12 in walk: 0.69 -> 0.88 m/s): not stuck
+  const mean = (ls) => ls.reduce((s, l) => s + bareSpeed(l), 0) / ls.length;
+  if (mean(recent) - mean(logs.slice(-100, -50)) > 0.03) return '';
   return 'slow progress';
 }
