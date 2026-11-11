@@ -45,9 +45,7 @@ Real rigid-body physics ([Rapier](https://rapier.rs)'s cross-platform determinis
 - [x] Ragdoll stands in Rapier, in Node and in the browser. Physics is deterministic across JS engines.
 - [x] Evolution strategies: antithetic sampling, rank shaping, Adam, worker threads capped at 70% of the machine, checkpoint/resume
 - [x] Curriculum stand → shuffle → walk → jog → run, with honest metrics: credit for the fall itself is taken back
-- [x] **It walks on its own.** Plain ES never took a step in 450 generations. With a helping hand that is annealed to zero (Yu, Turk & Liu 2018), it passed the walk stage unassisted, on two seeds:
-  - run Y at gen 714
-  - run Z: passed shuffle at gen 184, now in the walk stage
+- [x] **It walks on its own.** Plain ES never took a step in 450 generations. With a helping hand that is annealed to zero (Yu, Turk & Liu 2018), it passed the walk stage unassisted on 7 of 10 seeds, and 5 of those walkers pass the strict gate below.
 - [x] **It runs, sort of:** at 2 m/s the duty factor is 0.44 with 45% flight, but it's a two-footed *bound* (inter-leg phase ≈ 0.6 rad), not a human run. The arm with a learnable oscillator drifted to the same in-phase hop by itself. Details in the [devlog](docs/DEVLOG.md).
 - [x] Gait instruments: duty factor, flight, cadence, inter-leg phase, skip rate, Froude number
 - [x] Viewer:
@@ -57,11 +55,13 @@ Real rigid-body physics ([Rapier](https://rapier.rs)'s cross-platform determinis
   - ES siblings as ghosts (`g`)
   - click a body part to kick it
 - [ ] Pass the jog stage with pushes on, then the run stage
-- [x] **Pre-registered Earth gate: failed.** 5 of 10 training seeds produced a walker that passes; 8 were needed. Under the pre-registered kill criterion, the Moon/Mars experiment doesn't run with this recipe. Tally and failure modes in [GATE.md](docs/GATE.md).
+- [x] **Pre-registered Earth gate: failed.** 5 of 10 training seeds produced a walker that passes; 8 were needed. Under the pre-registered kill criterion, the Moon/Mars experiment doesn't run with this recipe. Write-up: [RESULTS-V1.md](docs/RESULTS-V1.md); tally: [GATE.md](docs/GATE.md), which CI re-checks against the gate on every push.
+
+  ![each v1 seed through the curriculum, with its gate result](docs/seeds.svg)
 - [ ] **v2, pre-registered ([PREREG-V2.md](docs/PREREG-V2.md)), training now on seeds 11–20.** Two of the five failures were a *help trap*: the brain learned to lean on the helping hand within a few generations, and the annealing rule then never fired again. v2 changes only that: the help also fades on a clock.
 
   ![helping-hand strength per seed in the shuffle stage](docs/assist.svg)
-- [ ] NEAT baseline at the same budget (`neat.mjs` is written but hasn't been run yet)
+- [ ] NEAT baseline at the same budget. `neat.mjs` now runs the same curriculum and graduation tests (its stock settings made it a strawman, see the devlog); a mutation-scale sweep is queued behind v2.
 
 ## Run it
 
