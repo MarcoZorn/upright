@@ -33,14 +33,14 @@ export function graduate(dir) {
 export const lastGen = (dir) => { try { return JSON.parse(fs.readFileSync(path.join(dir, 'state.json'), 'utf8')).gen; } catch { return 0; } };
 
 if (import.meta.main) {
-const rows = [];
-const fmt = (name, g) => `${name.padEnd(16)} ${g.pass ? 'PASS' : 'fail'}  ${g.ok}/10 seeds  speed ${g.speed.toFixed(2)}  upright ${(g.upFrac * 100).toFixed(0)}%  duty ${g.duty.toFixed(2)}`;
-for (const dir of process.argv.slice(2)) {
-  const run = path.basename(dir), grad = graduate(dir);
-  rows.push(grad ? `${run.padEnd(4)} graduate ${fmt(grad.name, gate(grad.brain))}`
-    : `${run.padEnd(4)} graduate (has not passed the walk stage yet${lastGen(dir) >= 1000 ? ': FAIL, budget of 1000 gens used (amendment 4)' : ''})`);
-  const gens = fs.existsSync(path.join(dir, 'gens')) ? fs.readdirSync(path.join(dir, 'gens')).sort() : [];
-  if (gens.length) rows.push(`${''.padEnd(4)} latest   ${fmt(gens.at(-1), gate(deserialize(fs.readFileSync(path.join(dir, 'gens', gens.at(-1)), 'utf8'))))}`);
-}
-console.log(rows.join('\n'));
+  const rows = [];
+  const fmt = (name, g) => `${name.padEnd(16)} ${g.pass ? 'PASS' : 'fail'}  ${g.ok}/10 seeds  speed ${g.speed.toFixed(2)}  upright ${(g.upFrac * 100).toFixed(0)}%  duty ${g.duty.toFixed(2)}`;
+  for (const dir of process.argv.slice(2)) {
+    const run = path.basename(dir), grad = graduate(dir);
+    rows.push(grad ? `${run.padEnd(4)} graduate ${fmt(grad.name, gate(grad.brain))}`
+      : `${run.padEnd(4)} graduate (has not passed the walk stage yet${lastGen(dir) >= 1000 ? ': FAIL, budget of 1000 gens used (amendment 4)' : ''})`);
+    const gens = fs.existsSync(path.join(dir, 'gens')) ? fs.readdirSync(path.join(dir, 'gens')).sort() : [];
+    if (gens.length) rows.push(`${''.padEnd(4)} latest   ${fmt(gens.at(-1), gate(deserialize(fs.readFileSync(path.join(dir, 'gens', gens.at(-1)), 'utf8'))))}`);
+  }
+  console.log(rows.join('\n'));
 }
